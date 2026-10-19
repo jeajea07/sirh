@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offres — TeamUp</title>
+<link rel="icon" href="../assets/logo.svg">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+</head>
+<body data-role="rh" data-page="offres" data-root="../" data-title="Offres">
+<main>
+  <div class="page-head">
+    <div><h1>Offres d’emploi</h1><p>Chaque offre vient d’une demande acceptée. Vous la vérifiez, la validez, puis la publiez.</p></div>
+    <button class="btn btn-primary" data-open="offre-modal">Créer une offre</button>
+  </div>
+  <div class="card card-flat"><div class="table-wrap"><table>
+    <thead><tr><th>Offre</th><th>Postes</th><th>Date limite</th><th>Candidatures</th><th>Statut</th><th></th></tr></thead>
+    <tbody id="offres-body"></tbody>
+  </table></div></div>
+</main>
+<div class="modal-back" id="offre-modal" role="dialog" aria-modal="true" aria-label="Nouvelle offre">
+  <div class="modal">
+    <div class="modal-head"><h2>Nouvelle offre</h2><button class="x" data-close aria-label="Fermer">&times;</button></div>
+    <form data-validate data-success="Offre validée. Elle peut maintenant être publiée." data-close-modal novalidate>
+  <div class="modal-body">
+    <div class="form-errors"></div>
+    <div class="form-grid" style="margin-top:6px">
+      <div class="field span2"><label for="demande">Demande de recrutement acceptée</label>
+        <select id="demande"><option>Demande n° 14 — Développeur web (Direction informatique)</option><option>Demande n° 15 — Technicien réseau (Direction informatique)</option></select>
+        <span class="hint">L’offre est créée automatiquement à partir de la demande.</span></div>
+      <div class="field"><label for="titre">Titre du poste *</label><input type="text" id="titre" required value="Technicien réseau"></div>
+      <div class="field"><label for="service">Service *</label><input type="text" id="service" required value="Direction informatique"></div>
+      <div class="field"><label for="postes">Postes à pourvoir *</label><input type="number" id="postes" min="1" required></div>
+      <div class="field"><label for="limite">Date limite *</label><input type="date" id="limite" required></div>
+      <div class="field span2"><label for="oblig">Critères obligatoires *</label><textarea id="oblig" required placeholder="Un critère par ligne : diplôme requis, expérience minimum, compétence…"></textarea></div>
+      <div class="field span2"><label for="souh">Critères souhaités</label><textarea id="souh" placeholder="Affichés au RH, ils ne changent pas le classement"></textarea></div>
+    </div>
+  </div>
+  <div class="modal-foot"><button type="button" class="btn" data-close>Annuler</button><button class="btn btn-primary" type="submit">Valider l’offre</button></div>
+</form>
+    
+  </div>
+</div>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/rh.js"></script>
+</body>
+</html>

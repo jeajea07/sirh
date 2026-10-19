@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+/* ---------- Palette TeamUp : encre, papier, ambre ---------- */
+:root {
+  --navy-900: #081227;
+  --navy-800: #0E1B38;
+  --navy-700: #162850;
+  --navy-600: #1F3563;
+  --steel-500: #6A86B2;
+  --steel-300: #9DB4D6;
+  --steel-200: #D9D5C9;
+  --steel-100: #ECE9E1;
+  --orange-400: #FFC83D;
+  --orange-500: #F5A300;
+  --orange-600: #E08F00;
+  --orange-700: #B87200;
+
+  --bg: #F5F3EE;
+  --card: #FFFFFF;
+  --ink: #0B1224;
+  --muted: #636A7E;
+  --line: #D9D4C7;
+  --line-strong: #BDB7A8;
+  --r: 6px;
+
+  --ok: #1F8F66;   --ok-bg: #E1F2EA;
+  --bad: #C8433F;  --bad-bg: #F9E4E2;
+  --warn: #9A5B00; --warn-bg: #FBEFD3;
+  --info: #2F67BF; --info-bg: #E3EDFA;
+
+  --display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --text: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+  --role: var(--orange-500);
+}
+
+/* Couleur de repère par espace */
+body[data-role="rh"]         { --role: #F5A300; }
+body[data-role="technicien"] { --role: #2BB3AC; }
+body[data-role="dg"]         { --role: #9A8CF2; }
+body[data-role="direction"]  { --role: #5B9BEF; }
+body[data-role="admin"]      { --role: #EF7A9B; }
+body[data-role="candidat"]   { --role: #8FA9D0; }
+body[data-role="site"]       { --role: #F5A300; }
+
+* { box-sizing: border-box; }
+html { font-size: 15px; }
+body { margin: 0; font-family: var(--text); color: var(--ink); background: var(--bg); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4, p { margin: 0; }
+h1, h2, h3 { font-family: var(--display); }
+h1 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.04em; line-height: 1.1; }
+h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: -.02em; }
+h3 { font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+img, svg { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* Utilitaires */
+.muted { color: var(--muted); }
+.small { font-size: .85rem; }
+.bold { font-weight: 700; }
+.right { text-align: right; }
+.center { text-align: center; }
+.hidden { display: none !important; }
+.row { display: flex; align-items: center; gap: 10px; }
+.between { justify-content: space-between; }
+.wrap { flex-wrap: wrap; }
+.grow { flex: 1; }
+.stack > * + * { margin-top: 14px; }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(2, 1fr); }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g4 { grid-template-columns: repeat(4, 1fr); }
+.g-main { grid-template-columns: 1fr 320px; align-items: start; }
+@media (max-width: 1100px) { .g4 { grid-template-columns: repeat(2, 1fr); } .g-main { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

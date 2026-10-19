@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Historique — TeamUp</title>
+<link rel="icon" href="../assets/logo.svg">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../assets/css/layout.css">
+</head>
+<body data-role="rh" data-page="historique" data-root="../" data-title="Historique">
+<main>
+  <div class="page-head">
+    <div><h1>Historique des décisions</h1><p>Chaque décision est gardée avec son auteur et sa date.</p></div>
+    <select id="filtre-historique" style="width:auto" aria-label="Filtrer">
+      <option value="tous">Toutes les décisions</option><option value="offre">Offres</option><option value="dossier">Dossiers</option><option value="test">Test technique</option><option value="entretien">Entretiens</option>
+    </select>
+  </div>
+  <div class="card"><ul class="timeline" id="historique-liste"></ul></div>
+</main>
+<script src="../assets/js/data.js"></script>
+<script src="../assets/js/ui.js"></script>
+<script src="../assets/js/shell.js"></script>
+<script src="../assets/js/rh.js"></script>
+</body>
+</html>

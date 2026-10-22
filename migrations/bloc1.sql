@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS relance                 CASCADE;
 DROP TABLE IF EXISTS controle_automatique    CASCADE;
-DROP TABLE IF EXISTS notifications            CASCADE;
+DROP TABLE IF EXISTS notification             CASCADE;
 DROP TABLE IF EXISTS historique_modification CASCADE;
 DROP TABLE IF EXISTS validation_etape        CASCADE;
 DROP TABLE IF EXISTS circuit_validation      CASCADE;
@@ -10,9 +10,11 @@ DROP TABLE IF EXISTS promotion               CASCADE;
 DROP TABLE IF EXISTS budget_departement      CASCADE;
 DROP TABLE IF EXISTS grille_salariale        CASCADE;
 DROP TABLE IF EXISTS type_contrat            CASCADE;
+DROP TABLE IF EXISTS utilisateur              CASCADE;
 DROP TABLE IF EXISTS employe                 CASCADE;
 DROP TABLE IF EXISTS poste                   CASCADE;
 DROP TABLE IF EXISTS departement             CASCADE;
+DROP TABLE IF EXISTS unite_organisationnelle CASCADE;
 
 CREATE TABLE poste (
     id_poste    INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -21,7 +23,7 @@ CREATE TABLE poste (
 
 CREATE TABLE unite_organisationnelle (
     id_unite_organisationnelle INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    designation                VARCHAR(150) NOT NULL CHECK (type_unite IN ('DIRECTION', 'DEPARTEMENT', 'SERVICE', 'SECTION'))
+    designation                VARCHAR(150) NOT NULL CHECK (designation IN ('DIRECTION', 'DEPARTEMENT', 'SERVICE', 'SECTION'))
 );
 
 CREATE TABLE departement (
@@ -44,6 +46,16 @@ CREATE TABLE employe (
     actif          BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (id_departement) REFERENCES departement(id_departement),
     FOREIGN KEY (id_poste)       REFERENCES poste(id_poste)
+);
+
+CREATE TABLE utilisateur (
+    id_utilisateur INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_employe     INT NOT NULL UNIQUE,
+    mot_de_passe   VARCHAR(100) NOT NULL,   -- hash BCrypt, jamais en clair
+    role           VARCHAR(30)  NOT NULL
+                   CHECK (role IN ('EMPLOYE','RESPONSABLE','RH','FINANCE','DG')),
+    actif          BOOLEAN NOT NULL DEFAULT TRUE,
+    FOREIGN KEY (id_employe) REFERENCES employe(id_employe)
 );
 
 CREATE TABLE type_contrat (
@@ -83,12 +95,21 @@ CREATE TABLE promotion (
     FOREIGN KEY (id_nouveau_poste) REFERENCES poste(id_poste)
 );
 
+CREATE TABLE critere_recrutement (
+    id_critere_recrutement INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    annee_experience       INT,
+    niveau_etude           VARCHAR(150) CHECK (niveau_etude IN ('LICENCE', 'MASTER', 'PHD')),
+    missions               VARCHAR(500),
+    competence             VARCHAR(500)
+);
+
 CREATE TABLE demande_besoin (
     id_demande_besoin INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     numero            VARCHAR(30) NOT NULL UNIQUE,
     id_demandeur      INT NOT NULL,
     id_departement    INT NOT NULL,
     id_poste          INT NOT NULL,
+    id_critere_recrutement INT NOT NULL,
     nombre_postes     INT NOT NULL DEFAULT 1 CHECK (nombre_postes >= 1),
     motif             VARCHAR(20) NOT NULL CHECK (motif IN ('REMPLACEMENT', 'RENFORT', 'CREATION')),
     niveau_urgence    VARCHAR(20) NOT NULL CHECK (niveau_urgence IN ('CRITIQUE', 'URGENT')),
@@ -101,15 +122,8 @@ CREATE TABLE demande_besoin (
     FOREIGN KEY (id_demandeur)    REFERENCES employe(id_employe),
     FOREIGN KEY (id_departement)  REFERENCES departement(id_departement),
     FOREIGN KEY (id_poste)        REFERENCES poste(id_poste),
-    FOREIGN KEY (id_type_contrat) REFERENCES type_contrat(id_type_contrat)
-);
-
-CREATE TABLE critere_recrutement (
-    id_critere_recrutement INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    annee_experience       INT,
-    niveau_etude           VARCHAR(150) CHECK (niveau_etude IN ('LICENCE', 'MASTER', 'PHD')),
-    missions               VARCHAR(500),
-    competence             VARCHAR(500)
+    FOREIGN KEY (id_type_contrat) REFERENCES type_contrat(id_type_contrat),
+    FOREIGN KEY (id_critere_recrutement) REFERENCES critere_recrutement(id_critere_recrutement)
 );
 
 CREATE TABLE circuit_validation (

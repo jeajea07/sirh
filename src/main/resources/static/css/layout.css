@@ -127,3 +127,17 @@
 /* Tableau de bord RH : colonne principale + colonne latérale */
 .g-32 { grid-template-columns: 3fr 2fr; align-items: start; }
 @media (max-width: 1100px) { .g-32 { grid-template-columns: 1fr; } }
+
+/* Layouts : page masquée le temps que assets/js/layout.js insère sidebar/topbar ou header/footer */
+html.layout-pending body { visibility: hidden; }
+
+/* Bouton « Se déconnecter » (formulaire POST) : même aspect qu'un lien de la barre latérale */
+button.side-link { width: 100%; background: none; border: 0; cursor: pointer; font-family: inherit; text-align: left; }
+
+/* ---------- Pages de demandes ---------- */
+.step.bad { color: var(--bad); }
+.step.bad i { background: var(--bad); border-color: var(--bad); color: #fff; }
+.step.bad::before { background: var(--ink); }
+.step small { display: block; margin-top: 2px; font-weight: 500; font-size: .72rem; color: var(--muted); }
+.demande-texte { white-space: pre-line; }
+.form-pied { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }

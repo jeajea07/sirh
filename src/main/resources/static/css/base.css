@@ -40,6 +40,9 @@ body[data-role="dg"]         { --role: #9A8CF2; }
 body[data-role="direction"]  { --role: #5B9BEF; }
 body[data-role="admin"]      { --role: #EF7A9B; }
 body[data-role="candidat"]   { --role: #8FA9D0; }
+body[data-role="employe"]     { --role: #8FA9D0; }
+body[data-role="responsable"] { --role: #2BB3AC; }
+body[data-role="finance"]     { --role: #5B9BEF; }
 body[data-role="site"]       { --role: #F5A300; }
 
 * { box-sizing: border-box; }

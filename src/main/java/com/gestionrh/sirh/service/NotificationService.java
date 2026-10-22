@@ -55,6 +55,9 @@ public class NotificationService {
             if ("FINANCE".equals(role)) {
                 return "/finance/demandes/" + n.getIdDemandeBesoin();
             }
+            if ("DG".equals(role)) {
+                return "/dg/demandes/" + n.getIdDemandeBesoin();
+            }
             return null;
         }
         if (n.getMessages().startsWith(PREFIXE_DEMANDEUR)) {

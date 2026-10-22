@@ -71,3 +71,19 @@ INSERT INTO grille_salariale (id_poste, id_departement, id_type_contrat, niveau,
 
 -- Comptable embauché dans un autre département (règle générale, sans niveau)
 (3, NULL, 1, NULL,    1800000);
+
+-- Si vous avez déjà exécuté budget_teste.sql, videz d'abord la table pour éviter les doublons :
+-- DELETE FROM budget_departement;
+
+INSERT INTO budget_departement (id_departement, periode, montant_alloue, montant_max) VALUES
+-- 2026
+(1, '2026', 99000000, 99999999),   -- Direction générale
+(2, '2026', 40000000, 45000000),   -- Ressources humaines
+(3, '2026', 30000000, 35000000),   -- Comptabilité
+(4, '2026', 60000000, 70000000),   -- Développement
+
+-- 2027
+(1, '2027', 99000000, 99999999),
+(2, '2027', 50000000, 55000000),
+(3, '2027', 20000000, 25000000),   -- budget serré pour tester le dépassement
+(4, '2027', 80000000, 90000000);

@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.enums;
+package com.gestionrh.sirh.enums.recrutement;
 
 /** INTERNE = notification dans l'application, EMAIL = e-mail. */
 public enum CanalNotification {

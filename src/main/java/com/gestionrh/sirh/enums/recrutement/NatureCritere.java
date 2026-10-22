@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.enums;
+package com.gestionrh.sirh.enums.recrutement;
 
 /** Nature du critere de l'offre. */
 public enum NatureCritere {

@@ -1,7 +1,7 @@
-package com.gestionrh.sirh.recrutement.repository;
+package com.gestionrh.sirh.repository.recrutement;
 
-import com.gestionrh.sirh.recrutement.enums.OffreStatut;
-import com.gestionrh.sirh.recrutement.model.Offre;
+import com.gestionrh.sirh.enums.recrutement.OffreStatut;
+import com.gestionrh.sirh.model.recrutement.Offre;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;

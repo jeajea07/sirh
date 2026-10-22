@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.enums;
+package com.gestionrh.sirh.enums.recrutement;
 
 /** Cycle de vie d'une offre. */
 public enum OffreStatut {

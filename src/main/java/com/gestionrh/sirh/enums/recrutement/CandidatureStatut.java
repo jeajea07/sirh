@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.enums;
+package com.gestionrh.sirh.enums.recrutement;
 
 /** Situation d'une candidature (ne saute jamais d'etape). Apres DOSSIER_VALIDE : mis a jour par les blocs 2B et 3. */
 public enum CandidatureStatut {

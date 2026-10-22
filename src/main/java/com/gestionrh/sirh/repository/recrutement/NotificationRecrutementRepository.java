@@ -1,7 +1,7 @@
-package com.gestionrh.sirh.recrutement.repository;
+package com.gestionrh.sirh.repository.recrutement;
 
-import com.gestionrh.sirh.recrutement.enums.StatutEnvoi;
-import com.gestionrh.sirh.recrutement.model.NotificationRecrutement;
+import com.gestionrh.sirh.enums.recrutement.StatutEnvoi;
+import com.gestionrh.sirh.model.recrutement.NotificationRecrutement;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

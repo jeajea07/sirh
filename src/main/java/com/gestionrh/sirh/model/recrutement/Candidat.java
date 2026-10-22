@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.model;
+package com.gestionrh.sirh.model.recrutement;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

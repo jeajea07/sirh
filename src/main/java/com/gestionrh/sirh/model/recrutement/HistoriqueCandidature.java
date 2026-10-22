@@ -1,7 +1,7 @@
-package com.gestionrh.sirh.recrutement.model;
+package com.gestionrh.sirh.model.recrutement;
 
-import com.gestionrh.sirh.recrutement.enums.CandidatureStatut;
-import com.gestionrh.sirh.recrutement.enums.Classement;
+import com.gestionrh.sirh.enums.recrutement.CandidatureStatut;
+import com.gestionrh.sirh.enums.recrutement.Classement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

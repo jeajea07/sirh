@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.enums;
+package com.gestionrh.sirh.enums.recrutement;
 
 /** Niveaux d'etude. L'ORDRE COMPTE : ordinal() permet de comparer deux niveaux. */
 public enum NiveauEtude {

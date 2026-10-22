@@ -1,6 +1,6 @@
-package com.gestionrh.sirh.recrutement.repository;
+package com.gestionrh.sirh.repository.recrutement;
 
-import com.gestionrh.sirh.recrutement.model.HistoriqueCandidature;
+import com.gestionrh.sirh.model.recrutement.HistoriqueCandidature;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

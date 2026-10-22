@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.enums;
+package com.gestionrh.sirh.enums.recrutement;
 
 /** Etat d'envoi d'une notification. */
 public enum StatutEnvoi {

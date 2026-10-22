@@ -1,8 +1,8 @@
-package com.gestionrh.sirh.recrutement.repository;
+package com.gestionrh.sirh.repository.recrutement;
 
-import com.gestionrh.sirh.recrutement.enums.CandidatureStatut;
-import com.gestionrh.sirh.recrutement.enums.Classement;
-import com.gestionrh.sirh.recrutement.model.Candidature;
+import com.gestionrh.sirh.enums.recrutement.CandidatureStatut;
+import com.gestionrh.sirh.enums.recrutement.Classement;
+import com.gestionrh.sirh.model.recrutement.Candidature;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;

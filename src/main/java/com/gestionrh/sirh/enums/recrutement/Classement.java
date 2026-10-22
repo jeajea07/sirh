@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.recrutement.enums;
+package com.gestionrh.sirh.enums.recrutement;
 
 /** Classement du dossier : automatique, puis decision du RH. */
 public enum Classement {

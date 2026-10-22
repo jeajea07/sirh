@@ -1,7 +1,7 @@
-package com.gestionrh.sirh.recrutement.repository;
+package com.gestionrh.sirh.repository.recrutement;
 
-import com.gestionrh.sirh.recrutement.enums.TypeCritere;
-import com.gestionrh.sirh.recrutement.model.CritereOffre;
+import com.gestionrh.sirh.enums.recrutement.TypeCritere;
+import com.gestionrh.sirh.model.recrutement.CritereOffre;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 

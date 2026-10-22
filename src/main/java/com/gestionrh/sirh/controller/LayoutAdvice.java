@@ -8,12 +8,10 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.ui.Model;
 
-/**
- * Fournit à TOUTES les pages JSP les informations de l'utilisateur connecté
- * utilisées par le gabarit (barre latérale et barre du haut) :
- * login, role (ex. "RH"), roleCode (ex. "rh"), roleLibelle, initiales.
- * Les contrôleurs n'ont donc rien à ajouter au modèle pour le gabarit.
- */
+import com.gestionrh.sirh.model.EmployeModel;
+import com.gestionrh.sirh.repository.EmployeRepository;
+import com.gestionrh.sirh.service.NotificationService;
+
 @ControllerAdvice
 public class LayoutAdvice {
 
@@ -23,6 +21,14 @@ public class LayoutAdvice {
             "RH", "Ressources humaines",
             "FINANCE", "Finance",
             "DG", "Direction générale");
+
+    private final EmployeRepository employes;
+    private final NotificationService notifications;
+
+    public LayoutAdvice(EmployeRepository employes, NotificationService notifications) {
+        this.employes = employes;
+        this.notifications = notifications;
+    }
 
     @ModelAttribute
     public void infosUtilisateur(Authentication auth, Model model) {
@@ -41,9 +47,14 @@ public class LayoutAdvice {
         model.addAttribute("roleCode", role.toLowerCase());
         model.addAttribute("roleLibelle", LIBELLES.getOrDefault(role, role));
         model.addAttribute("initiales", initiales(auth.getName()));
+
+        EmployeModel employe = employes.trouverParLogin(auth.getName()).orElse(null);
+        if (employe != null) {
+            model.addAttribute("notifications", notifications.recentes(employe.getId(), "RH".equals(role)));
+            model.addAttribute("nbNotifications", notifications.nonLues(employe.getId()));
+        }
     }
 
-    /** "jean.rakoto@x.mg" -> "JR" ; "EMP001" -> "EM". */
     private static String initiales(String login) {
         String base = login == null ? "" : login.trim();
         int arobase = base.indexOf('@');

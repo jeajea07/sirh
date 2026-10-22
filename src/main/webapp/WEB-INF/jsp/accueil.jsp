@@ -13,7 +13,6 @@
   <div class="card stack">
     <h2>Votre espace</h2>
 
-    <%-- isUserInRole("RH") teste l'autorité ROLE_RH --%>
     <c:if test="${pageContext.request.isUserInRole('EMPLOYE')}">
       <p>Vous pouvez créer et suivre vos demandes de besoin.</p>
     </c:if>
@@ -21,7 +20,7 @@
       <p>Vous validez les demandes de votre département.</p>
     </c:if>
     <c:if test="${pageContext.request.isUserInRole('RH')}">
-      <p>Vous vérifiez les demandes validées par les responsables.</p>
+      <p>Vous vérifiez les demandes de besoin en personnel. <a href="<c:url value='/rh/demandes'/>">Voir les demandes à vérifier</a></p>
     </c:if>
     <c:if test="${pageContext.request.isUserInRole('FINANCE')}">
       <p>Vous vérifiez le budget des demandes.</p>

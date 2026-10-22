@@ -6,8 +6,7 @@
   function mettreAJour() {
     if (typeContrat && blocDuree) {
       var option = typeContrat.options[typeContrat.selectedIndex];
-      var code = option ? option.getAttribute('data-code') : null;
-      var avecDuree = code === 'CDD' || code === 'CE' || code === 'STAGE';
+      var avecDuree = !!option && option.getAttribute('data-duree') === 'true';
       blocDuree.classList.toggle('hidden', !avecDuree);
     }
   }

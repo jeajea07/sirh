@@ -25,6 +25,9 @@ public class NotificationModel {
     @Column(name = "date_envoi", nullable = false)
     private LocalDateTime dateEnvoi;
 
+    @Column(name = "lue", nullable = false)
+    private boolean lue = false;
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -36,6 +39,9 @@ public class NotificationModel {
 
     public String getMessages() { return messages; }
     public void setMessages(String messages) { this.messages = messages; }
+
+    public boolean isLue() { return lue; }
+    public void setLue(boolean lue) { this.lue = lue; }
 
     public LocalDateTime getDateEnvoi() { return dateEnvoi; }
     public void setDateEnvoi(LocalDateTime dateEnvoi) { this.dateEnvoi = dateEnvoi; }

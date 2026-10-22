@@ -123,7 +123,6 @@
       <div class="field">
         <label for="justification">Pourquoi ce besoin ? *</label>
         <textarea id="justification" name="justification"><c:out value="${form.justification}"/></textarea>
-        <span class="hint">Pour une création de poste, détaillez davantage (50 caractères minimum).</span>
       </div>
     </div>
 

@@ -68,11 +68,12 @@ CREATE TABLE grille_salariale (
     id_grille_salariale INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_poste            INT NOT NULL,
     id_departement      INT,
+    id_type_contrat     INT NOT NULL,
     niveau              VARCHAR(150),
-    salaire_min         DECIMAL(10,2) NOT NULL,
-    salaire_max         DECIMAL(10,2) NOT NULL,
+    salaire         DECIMAL(10,2) NOT NULL,
     FOREIGN KEY (id_poste)       REFERENCES poste(id_poste),
-    FOREIGN KEY (id_departement) REFERENCES departement(id_departement)
+    FOREIGN KEY (id_departement) REFERENCES departement(id_departement),
+    FOREIGN KEY (id_type_contrat) REFERENCES type_contrat(id_type_contrat)
 );
 
 CREATE TABLE budget_departement (

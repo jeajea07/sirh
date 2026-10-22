@@ -28,7 +28,6 @@ public class TypeContratModel {
 
     public boolean isCdd() { return "CDD".equalsIgnoreCase(code); }
 
-    /** Types de contrat pour lesquels une durée (en mois) est demandée : CDD, CE, STAGE. */
     public boolean isAvecDuree() {
         return "CDD".equalsIgnoreCase(code) || "CE".equalsIgnoreCase(code) || "STAGE".equalsIgnoreCase(code);
     }

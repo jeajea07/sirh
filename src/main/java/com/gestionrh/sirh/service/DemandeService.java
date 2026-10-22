@@ -129,8 +129,6 @@ public class DemandeService {
 
         if (f.getJustification() == null || f.getJustification().isBlank()) {
             erreurs.add("La justification est obligatoire.");
-        } else if ("CREATION".equals(f.getMotif()) && f.getJustification().trim().length() < 50) {
-            erreurs.add("La justification d'une création de poste doit faire au moins 50 caractères.");
         }
 
         if (!estDansListe(f.getNiveauEtude(), "LICENCE", "MASTER", "PHD")) {
@@ -235,7 +233,7 @@ public class DemandeService {
         }
 
         boolean correction = "A_CORRIGER".equals(d.getStatut());
-        // Toute demande est envoyée directement à la RH (l'étape Responsable est sautée).
+
         String etape = "RH";
         if (correction) {
             List<ValidationEtapeModel> lignes = validations.findByIdDemandeBesoinOrderByIdAsc(id);
@@ -308,7 +306,7 @@ public class DemandeService {
 
             if (derniere == null) {
                 if ("RESPONSABLE".equals(c.getEtape())) {
-                    // Les demandes vont directement à la RH : l'étape Responsable n'est pas affichée.
+
                     continue;
                 }
             } else if (derniere.getDecision() == null) {

@@ -30,6 +30,7 @@ public class Candidature {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_candidature")
     private Integer idCandidature;
 
     @Column(nullable = false, unique = true, length = 30)
@@ -48,7 +49,7 @@ public class Candidature {
 
     private LocalDateTime dateRattachement;
 
-    @Column(nullable = false)
+    @Column(name = "date_reception", nullable = false)
     private LocalDateTime dateReception = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
@@ -83,7 +84,7 @@ public class Candidature {
     private Long cvTailleOctets;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(name = "statut", nullable = false, length = 30)
     private CandidatureStatut statut = CandidatureStatut.RECUE;
 
     @Enumerated(EnumType.STRING)

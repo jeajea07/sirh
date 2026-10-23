@@ -81,11 +81,15 @@ CREATE INDEX idx_critere_offre ON critere_offre(id_offre);
 -- ---------------------------------------------------------------------
 CREATE TABLE candidat (
     id_candidat   INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    identifiant   VARCHAR(100) UNIQUE,
     nom           VARCHAR(100) NOT NULL,
     prenom        VARCHAR(100) NOT NULL,
     email         VARCHAR(150) NOT NULL UNIQUE,
     telephone     VARCHAR(30),
     adresse       VARCHAR(255),
+    mot_de_passe  VARCHAR(255),
+    actif         BOOLEAN NOT NULL DEFAULT TRUE,
+    acces_cree    BOOLEAN NOT NULL DEFAULT FALSE,
     date_creation TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
@@ -121,7 +125,8 @@ CREATE TABLE candidature (
 
     -- Situation
     statut            VARCHAR(30) NOT NULL DEFAULT 'RECUE'
-                      CHECK (statut IN ('RECUE','A_ETUDIER','DOSSIER_VALIDE','TEST_TECHNIQUE',
+                      CHECK (statut IN ('RECUE','RECU','A_ETUDIER','DOSSIER_VALIDE','TEST_TECHNIQUE',
+                                        'TEST_EN_COURS','TEST_OK','ADMIS','REFUSE','ABSENT','EN_ATTENTE',
                                         'ENTRETIEN_RH','ENTRETIEN_TECHNICIEN','ENTRETIEN_DG',
                                         'CONFIRMATION_FINALE','RECRUTE','NON_RETENUE',
                                         'LISTE_ATTENTE','RETIREE')),

@@ -13,6 +13,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -22,8 +23,10 @@ public class AnnulationOffreService {
 
     private static final Logger log = LoggerFactory.getLogger(AnnulationOffreService.class);
     private static final List<CandidatureStatut> STATUTS_EN_COURS = List.of(
-            CandidatureStatut.RECUE, CandidatureStatut.A_ETUDIER, CandidatureStatut.DOSSIER_VALIDE,
-            CandidatureStatut.TEST_TECHNIQUE, CandidatureStatut.ENTRETIEN_RH,
+            CandidatureStatut.RECUE, CandidatureStatut.RECU, CandidatureStatut.A_ETUDIER, CandidatureStatut.DOSSIER_VALIDE,
+            CandidatureStatut.TEST_TECHNIQUE, CandidatureStatut.TEST_EN_COURS,
+            CandidatureStatut.TEST_OK, CandidatureStatut.EN_ATTENTE, CandidatureStatut.ADMIS,
+            CandidatureStatut.ENTRETIEN_RH,
             CandidatureStatut.ENTRETIEN_TECHNICIEN, CandidatureStatut.ENTRETIEN_DG,
             CandidatureStatut.CONFIRMATION_FINALE, CandidatureStatut.LISTE_ATTENTE);
 
@@ -44,7 +47,7 @@ public class AnnulationOffreService {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void traiter(OffreAnnuleeEvent event) {
         Offre offre = offres.findById(event.idOffre()).orElse(null);
         if (offre == null || offre.getStatut() != OffreStatut.ANNULEE) return;

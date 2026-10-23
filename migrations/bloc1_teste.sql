@@ -22,10 +22,10 @@ INSERT INTO employe (matricule, nom, prenom, email, id_departement, id_poste, da
 ('EMP004', 'Rasoa', 'Henika', 'henika.rasoa@entreprise.mg', 4, 4, '2022-06-01', TRUE);
 
 INSERT INTO utilisateur (id_employe, mot_de_passe, role, actif) VALUES
-(1, '$2b$10$RVta7ZfNJENwLJPeizevc.3rX./KiTaHnTK3rgO3FhDSVbsLz3wLq', 'DG', TRUE),
-(2, '$2b$10$r2gKtwlCj2JE67xRt6WKTeZ4JRA.jF9qFgilolQGu6noQOFFsFMnW', 'RH', TRUE),
-(3, '$2b$10$UQW8eEqoX.M9QD/842YA8OmpIiL.DeemDtXrzbBD9sBVMUJIgaagm', 'FINANCE', TRUE),
-(4, '$2b$10$B.f2aXSQXRhEyeX8Mc8w/O5Xq8lOPM0YIq7Gfy9GpZrS65nMsA12a', 'EMPLOYE', TRUE);
+(1, '$2b$10$RVta7ZfNJENwLJPeizevc.3rX./KiTaHnTK3rgO3FhDSVbsLz3wLq', 'DG', TRUE), -- DGpassword123
+(2, '$2b$10$r2gKtwlCj2JE67xRt6WKTeZ4JRA.jF9qFgilolQGu6noQOFFsFMnW', 'RH', TRUE), -- RHpassword123
+(3, '$2b$10$UQW8eEqoX.M9QD/842YA8OmpIiL.DeemDtXrzbBD9sBVMUJIgaagm', 'FINANCE', TRUE), -- FINANCEpassword123
+(4, '$2b$10$B.f2aXSQXRhEyeX8Mc8w/O5Xq8lOPM0YIq7Gfy9GpZrS65nMsA12a', 'EMPLOYE', TRUE); -- EMPLOYEpassword123
 
 INSERT INTO type_contrat (code, libelle) VALUES
 ('CDI', 'Contrat à durée indéterminée'),
@@ -71,3 +71,19 @@ INSERT INTO grille_salariale (id_poste, id_departement, id_type_contrat, niveau,
 
 -- Comptable embauché dans un autre département (règle générale, sans niveau)
 (3, NULL, 1, NULL,    1800000);
+
+-- Si vous avez déjà exécuté budget_teste.sql, videz d'abord la table pour éviter les doublons :
+-- DELETE FROM budget_departement;
+
+INSERT INTO budget_departement (id_departement, periode, montant_alloue, montant_max) VALUES
+-- 2026
+(1, '2026', 99000000, 99999999),   -- Direction générale
+(2, '2026', 40000000, 45000000),   -- Ressources humaines
+(3, '2026', 30000000, 35000000),   -- Comptabilité
+(4, '2026', 60000000, 70000000),   -- Développement
+
+-- 2027
+(1, '2027', 99000000, 99999999),
+(2, '2027', 50000000, 55000000),
+(3, '2027', 20000000, 25000000),   -- budget serré pour tester le dépassement
+(4, '2027', 80000000, 90000000);

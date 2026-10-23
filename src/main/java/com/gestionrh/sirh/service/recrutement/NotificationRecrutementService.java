@@ -69,6 +69,28 @@ public class NotificationRecrutementService {
         return n;
     }
 
+    /** Envoie des identifiants temporaires sans les conserver dans le corps de notification en base. */
+    @Transactional
+    public NotificationRecrutement notifierAccesTestCandidat(Integer idCandidat, String objet,
+            String messageSecret, Integer idOffre, Integer idCandidature) {
+        String type = "ACCES_TEST_CANDIDAT";
+        if (idCandidat == null) throw new IllegalArgumentException("Le destinataire candidat est obligatoire.");
+        if (dejaNotifie(idCandidature, type)) return null;
+        NotificationRecrutement n = nouvelle(type, objet,
+                "Les identifiants temporaires du test ont été envoyés par e-mail.", idOffre, idCandidature);
+        n.setCanal(CanalNotification.EMAIL);
+        n.setIdCandidat(idCandidat);
+        n.setStatutEnvoi(StatutEnvoi.EN_ATTENTE);
+        notifications.saveAndFlush(n);
+        traiter(n, messageSecret);
+        if (n.getStatutEnvoi() == StatutEnvoi.ECHEC) {
+            // Le mot de passe temporaire n'est volontairement pas stocké pour permettre une relance.
+            n.setTentatives(LIMITE_TENTATIVES);
+            notifications.save(n);
+        }
+        return n;
+    }
+
     @Transactional
     public NotificationRecrutement notifierEmployeUneFoisParJour(Integer idEmploye, String type, String objet,
             String message, Integer idOffre) {
@@ -118,11 +140,15 @@ public class NotificationRecrutementService {
     }
 
     private void traiter(NotificationRecrutement n) {
+        traiter(n, n.getMessage());
+    }
+
+    private void traiter(NotificationRecrutement n, String messageCourriel) {
         if (n.getTentatives() >= LIMITE_TENTATIVES) return;
         n.setTentatives(n.getTentatives() + 1);
         try {
             if (n.getCanal() == CanalNotification.EMAIL) {
-                envoyerCourriel(n);
+                envoyerCourriel(n, messageCourriel);
             }
             n.setStatutEnvoi(StatutEnvoi.ENVOYE);
             n.setErreur(null);
@@ -136,12 +162,13 @@ public class NotificationRecrutementService {
         notifications.save(n);
     }
 
-    private void envoyerCourriel(NotificationRecrutement n) {
+    private void envoyerCourriel(NotificationRecrutement n, String messageCourriel) {
         Candidat c = candidats.findById(n.getIdCandidat()).orElseThrow(() ->
                 new RessourceIntrouvableException("Candidat introuvable pour l'envoi de la notification."));
         if (!mailActif) {
             String contenu = n.getTypeNotification().startsWith("RAPPEL_RETARDS_")
-                    ? "[contenu nominatif masqué dans les journaux]" : n.getMessage();
+                    || "ACCES_TEST_CANDIDAT".equals(n.getTypeNotification())
+                    ? "[contenu sensible masqué dans les journaux]" : messageCourriel;
             log.info("Simulation d'envoi e-mail — objet: {} ; contenu: {}", n.getObjet(), contenu);
             return;
         }
@@ -149,7 +176,7 @@ public class NotificationRecrutementService {
         mail.setFrom(expediteur);
         mail.setTo(c.getEmail());
         mail.setSubject(n.getObjet());
-        mail.setText(n.getMessage());
+        mail.setText(messageCourriel);
         mailSender.send(mail);
     }
 

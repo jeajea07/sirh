@@ -4,6 +4,10 @@
   <button class="burger" type="button" aria-label="Ouvrir le menu"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
   <h2><c:out value="${param.titre}"/></h2>
 
+  <c:if test="${empty role}">
+    <a class="btn btn-sm btn-primary" style="margin-left:auto" href="<c:url value='/connexion'/>">Connexion</a>
+  </c:if>
+  <c:if test="${not empty role}">
   <div style="position:relative;margin-left:auto">
     <button class="icon-btn" type="button" data-bell aria-label="Notifications"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1112 0v5l2 2H4l2-2zM10 21h4"/></svg><c:if test="${nbNotifications > 0}"><span class="dot"></span></c:if></button>
     <div class="drop">
@@ -32,4 +36,5 @@
     </div>
   </div>
   <div class="avatar"><c:out value="${initiales}"/></div>
+  </c:if>
 </header>

@@ -1,12 +1,16 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<jsp:include page="/WEB-INF/views/recrutement/fragments/entete.jsp"/>
+<%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
+<t:layout titre="Offres d'emploi" actif="offres-rh">
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 
-<div class="barre">
+<div class="page-head">
   <h1>Offres d'emploi</h1>
-  <a class="btn" href="${ctx}/recrutement/offres/nouveau">Nouvelle offre</a>
+  <a class="btn btn-primary" href="${ctx}/recrutement/offres/nouveau">Nouvelle offre depuis une demande</a>
 </div>
+
+<c:if test="${not empty message}"><div class="alert alert-ok" style="margin-bottom:16px"><c:out value="${message}"/></div></c:if>
+<c:if test="${not empty erreur}"><div class="alert alert-bad" style="margin-bottom:16px"><c:out value="${erreur}"/></div></c:if>
 
 <form class="filtre" method="get" action="${ctx}/recrutement/offres">
   <input type="text" name="q" value="<c:out value='${q}'/>" placeholder="Rechercher par titre">
@@ -19,7 +23,7 @@
   <button class="btn" type="submit">Filtrer</button>
 </form>
 
-<table>
+<div class="card card-flat"><div class="table-wrap"><table>
   <thead>
     <tr><th>Reference</th><th>Titre</th><th>Postes</th><th>Candidatures</th><th>Date limite</th><th>Statut</th><th></th></tr>
   </thead>
@@ -39,10 +43,10 @@
       <tr><td colspan="7">Aucune offre.</td></tr>
     </c:if>
   </tbody>
-</table>
+</table></div></div>
 
 <c:if test="${page.totalPages > 1}">
-  <p class="pagination">
+  <p class="pagination" style="margin-top:16px">
     <c:forEach begin="0" end="${page.totalPages - 1}" var="i">
       <c:url var="lien" value="/recrutement/offres">
         <c:param name="q" value="${q}"/>
@@ -54,4 +58,4 @@
   </p>
 </c:if>
 
-<jsp:include page="/WEB-INF/views/recrutement/fragments/pied.jsp"/>
+</t:layout>

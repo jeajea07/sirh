@@ -27,9 +27,10 @@ public class Offre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_offre")
     private Integer idOffre;
 
-    @Column(nullable = false, unique = true, length = 30)
+    @Column(name = "reference", nullable = false, unique = true, length = 30)
     private String reference;
 
     @Column(nullable = false)
@@ -47,7 +48,7 @@ public class Offre {
     private Integer dureeMois;
 
     @NotBlank
-    @Column(nullable = false, length = 200)
+    @Column(name = "titre", nullable = false, length = 200)
     private String titre;
 
     @Column(columnDefinition = "text")
@@ -61,14 +62,14 @@ public class Offre {
     private BigDecimal salairePropose;
 
     @Min(1)
-    @Column(nullable = false)
+    @Column(name = "nombre_postes", nullable = false)
     private Integer nombrePostes = 1;
 
     @Column(nullable = false)
     private Integer nbCandidatures = 0;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "statut", nullable = false, length = 20)
     private OffreStatut statut = OffreStatut.BROUILLON;
 
     @Column(nullable = false)
@@ -78,8 +79,10 @@ public class Offre {
 
     private LocalDateTime dateValidation;
 
+    @Column(name = "date_publication")
     private LocalDateTime datePublication;
 
+    @Column(name = "date_limite")
     private LocalDate dateLimite;
 
     @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL, orphanRemoval = true)

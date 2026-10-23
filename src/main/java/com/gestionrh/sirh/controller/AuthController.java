@@ -9,8 +9,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class AuthController {
 
     @GetMapping("/")
-    public String racine() {
-        return "redirect:/accueil";
+    public String racine(Authentication auth) {
+        boolean dejaConnecte = auth != null
+                && auth.isAuthenticated()
+                && !(auth instanceof AnonymousAuthenticationToken);
+        return dejaConnecte ? "redirect:/accueil" : "redirect:/offres";
     }
 
     // Le POST /connexion est géré par Spring Security, pas ici.
@@ -24,7 +27,11 @@ public class AuthController {
 
     // login, role... sont ajoutés au modèle par LayoutAdvice
     @GetMapping("/accueil")
-    public String accueil() {
+    public String accueil(Authentication auth) {
+        if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CANDIDAT"))) {
+            return "redirect:/candidat";
+        }
         return "accueil";
     }
 

@@ -17,6 +17,7 @@ public class Candidat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_candidat")
     private Integer idCandidat;
 
     @NotBlank
@@ -38,7 +39,7 @@ public class Candidat {
     @Column(length = 255)
     private String adresse;
 
-    @Column(nullable = false)
+    @Column(name = "date_creation", nullable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 
     public Integer getIdCandidat() { return idCandidat; }

@@ -1,7 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<jsp:include page="/WEB-INF/views/recrutement/fragments/entete.jsp"/>
+<%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
+<t:layout titre="${titrePage}" actif="offres-rh">
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="edition" value="${not empty offre}"/>
 <c:set var="urlRetour" value="${ctx}/recrutement/offres"/>
@@ -11,58 +12,58 @@
   <c:set var="urlAction" value="${ctx}/recrutement/offres/${offre.idOffre}/modifier"/>
 </c:if>
 
-<div class="barre">
+<div class="page-head">
   <h1><c:out value="${titrePage}"/></h1>
-  <a class="btn sec" href="${urlRetour}">Retour</a>
+  <a class="btn" href="${urlRetour}">Retour</a>
 </div>
 
-<div class="carte">
+<div class="card" style="max-width:900px">
 <form:form modelAttribute="offreForm" method="post"
-           action="${urlAction}">
+           action="${urlAction}" cssClass="stack" cssStyle="max-width:940px">
 
-  <label>Titre de l'offre</label>
-  <form:input path="titre" maxlength="200"/>
-  <form:errors path="titre" cssClass="err"/>
+  <div class="field"><label for="titre">Titre de l'offre</label>
+  <form:input path="titre" id="titre" maxlength="200"/>
+  <form:errors path="titre" cssClass="err"/></div>
 
-  <label>Description</label>
-  <form:textarea path="description" rows="4"/>
+  <div class="field"><label for="description">Description</label>
+  <form:textarea path="description" id="description" rows="4"/></div>
 
-  <label>Missions</label>
-  <form:textarea path="missions" rows="4"/>
+  <div class="field"><label for="missions">Missions</label>
+  <form:textarea path="missions" id="missions" rows="4"/></div>
 
-  <div class="grille">
-    <div>
-      <label>Salaire propose (non negociable)</label>
-      <form:input path="salairePropose" type="number" step="0.01" min="0"/>
+  <div class="grid g2">
+    <div class="field">
+      <label for="salairePropose">Salaire proposé (non négociable)</label>
+      <form:input path="salairePropose" id="salairePropose" type="number" step="0.01" min="0"/>
       <form:errors path="salairePropose" cssClass="err"/>
     </div>
-    <div>
-      <label>Nombre de postes</label>
-      <form:input path="nombrePostes" type="number" min="1"/>
+    <div class="field">
+      <label for="nombrePostes">Nombre de postes</label>
+      <form:input path="nombrePostes" id="nombrePostes" type="number" min="1"/>
       <form:errors path="nombrePostes" cssClass="err"/>
     </div>
-    <div>
-      <label>Duree du contrat (mois, facultatif)</label>
-      <form:input path="dureeMois" type="number" min="0"/>
+    <div class="field">
+      <label for="dureeMois">Durée du contrat (mois, facultatif)</label>
+      <form:input path="dureeMois" id="dureeMois" type="number" min="0"/>
       <form:errors path="dureeMois" cssClass="err"/>
     </div>
-    <div>
-      <label>Date limite de candidature</label>
-      <form:input path="dateLimite" type="date"/>
+    <div class="field">
+      <label for="dateLimite">Date limite de candidature</label>
+      <form:input path="dateLimite" id="dateLimite" type="date"/>
       <form:errors path="dateLimite" cssClass="err"/>
     </div>
   </div>
 
   <c:choose>
     <c:when test="${edition}">
-      <p class="alert warn">Demande n&deg;<c:out value="${offre.idDemandeBesoin}"/> &middot; poste <c:out value="${offre.idPoste}"/> &middot; département <c:out value="${offre.idDepartement}"/> &middot; contrat <c:out value="${offre.idTypeContrat}"/>
+      <p class="alert alert-info">Demande n&deg;<c:out value="${offre.idDemandeBesoin}"/> &middot; poste <c:out value="${offre.idPoste}"/> &middot; département <c:out value="${offre.idDepartement}"/> &middot; contrat <c:out value="${offre.idTypeContrat}"/>
         (fixes : repris de la demande acceptee).</p>
     </c:when>
-    <c:otherwise><p class="alert warn">La création se fait depuis une demande de besoin acceptée.</p></c:otherwise>
+    <c:otherwise><p class="alert alert-warn">La création se fait depuis une demande de besoin acceptée.</p></c:otherwise>
   </c:choose>
 
-  <p><button class="btn" type="submit">Enregistrer</button></p>
+  <p class="row wrap"><button class="btn btn-primary" type="submit">Enregistrer</button><a class="btn" href="${urlRetour}">Annuler</a></p>
 </form:form>
 </div>
 
-<jsp:include page="/WEB-INF/views/recrutement/fragments/pied.jsp"/>
+</t:layout>

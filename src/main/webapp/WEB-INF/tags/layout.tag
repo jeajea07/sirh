@@ -19,7 +19,8 @@
 <link rel="stylesheet" href="<c:url value='/css/components.css'/>">
 <link rel="stylesheet" href="<c:url value='/css/layout.css'/>">
 </head>
-<body data-role="<c:out value='${roleCode}'/>">
+<c:set var="rolePage" value="${empty roleCode ? 'site' : roleCode}"/>
+<body data-role="<c:out value='${rolePage}'/>">
 <div class="app">
   <jsp:include page="/WEB-INF/jsp/layouts/sidebar.jsp">
     <jsp:param name="actif" value="${actif}"/>

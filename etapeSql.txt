@@ -1,0 +1,9 @@
+create database gestionrh
+
+bloc1.sql
+b2a_recrutement.sql
+bloc2.sql
+
+bloc1_teste.sql
+b2a_donnees_test.sql
+bloc2_teste.sql

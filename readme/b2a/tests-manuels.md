@@ -215,7 +215,7 @@ Créer des candidatures de test séparées couvrant :
 4. Pour un dossier conforme, vérifier l'événement `DossierValideEvent` dans les journaux.
 5. Pour un dossier non conforme, vérifier l'e-mail simulé.
 
-**Attendu :** `A_REGARDER` doit être tranché; commentaire obligatoire lors d'un changement; conforme devient `DOSSIER_VALIDE`; non conforme devient `NON_RETENUE`; auteur, date, décision et commentaire sont historisés; aucune seconde décision n'est permise. Pas de compte candidat ni de convocation créée ici : le bloc 2B doit écouter l'événement.
+**Attendu :** `A_REGARDER` doit être tranché; commentaire obligatoire lors d'un changement; conforme devient `DOSSIER_VALIDE`; non conforme devient `NON_RETENUE`; auteur, date, décision et commentaire sont historisés; aucune seconde décision n'est permise. Après commit, le listener BLOC 2B crée l'accès candidat et déclenche l'e-mail d'accès au test. En mode simulation, le mot de passe n'est pas affiché dans les journaux.
 
 ## 8. Notifications et rappels
 

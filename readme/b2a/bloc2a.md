@@ -22,7 +22,7 @@ flowchart LR
 
 ## Données
 
-Le script `migrations/b2a_recrutement.sql` définit les tables suivantes. Les références vers les autres blocs restent des identifiants simples, sans modification de leurs tables.
+Le script `migrations/b2a_recrutement.sql` définit les tables principales du recrutement. Les extensions BLOC 2B (compte candidat, test technique et réponses) sont ajoutées par `migrations/bloc2.sql`; ce script doit être appliqué après les migrations BLOC 1 et BLOC 2A. Le candidat, l'offre et la candidature ne sont définis qu'une seule fois. Les références vers le bloc 1 restent des identifiants simples, sans modification de ses tables.
 
 ```mermaid
 erDiagram

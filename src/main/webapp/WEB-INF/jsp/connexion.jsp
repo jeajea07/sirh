@@ -47,6 +47,7 @@
 
       <button class="btn btn-primary btn-block" type="submit">Se connecter</button>
     </form>
+    <p class="muted" style="margin-top:1rem">Vous cherchez un emploi ? <a href="<c:url value='/offres'/>">Consulter les offres publiques</a>.</p>
   </div>
 </div>
 

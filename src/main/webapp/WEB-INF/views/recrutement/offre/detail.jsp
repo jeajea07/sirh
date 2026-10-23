@@ -1,26 +1,30 @@
 <%@ page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
-<jsp:include page="/WEB-INF/views/recrutement/fragments/entete.jsp"/>
+<%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
+<t:layout titre="${titrePage}" actif="offres-rh">
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 <c:set var="base" value="${ctx}/recrutement/offres/${offre.idOffre}"/>
 
-<div class="barre">
+<div class="page-head">
   <h1><c:out value="${offre.titre}"/> <span class="badge"><c:out value="${offre.statut}"/></span>
     <c:if test="${offreFermeeParDate}"><span class="badge TERMINEE">Clôturée (date limite dépassée)</span></c:if>
   </h1>
-  <a class="btn sec" href="${ctx}/recrutement/offres">Retour a la liste</a>
+  <a class="btn" href="${ctx}/recrutement/offres">Retour à la liste</a>
 </div>
 
+<c:if test="${not empty message}"><div class="alert alert-ok" style="margin-bottom:16px"><c:out value="${message}"/></div></c:if>
+<c:if test="${not empty erreur}"><div class="alert alert-bad" style="margin-bottom:16px"><c:out value="${erreur}"/></div></c:if>
+
 <c:if test="${not empty manquants}">
-  <div class="alert warn">
+  <div class="alert alert-warn">
     <strong>Offre incomplete</strong> : elle ne peut pas etre validee ni publiee. A renseigner :
     <c:forEach items="${manquants}" var="m" varStatus="st"><c:out value="${m}"/><c:if test="${!st.last}">, </c:if></c:forEach>.
   </div>
 </c:if>
 
-<div class="carte">
-  <dl>
+<div class="card">
+  <dl class="kv">
     <dt>Reference</dt><dd><c:out value="${offre.reference}"/></dd>
     <dt>Demande de besoin</dt><dd>n&deg;<c:out value="${offre.idDemandeBesoin}"/></dd>
     <dt>Nombre de postes</dt><dd><c:out value="${offre.nombrePostes}"/></dd>
@@ -35,27 +39,27 @@
   </dl>
 </div>
 
-<div class="carte">
+<div class="card" style="margin-top:16px">
   <c:if test="${offre.statut == 'BROUILLON'}">
-    <a class="btn sec" href="${base}/modifier">Modifier</a>
-    <form class="inline" method="post" action="${base}/valider"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn ok" type="submit">Valider</button></form>
+    <a class="btn" href="${base}/modifier">Modifier</a>
+    <form class="inline" method="post" action="${base}/valider"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn btn-primary" type="submit">Valider</button></form>
     <form class="inline" method="post" action="${base}/supprimer" onsubmit="return confirm('Supprimer ce brouillon ?');">
       <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
       <button class="btn danger" type="submit">Supprimer</button></form>
   </c:if>
   <c:if test="${offre.statut == 'VALIDEE'}">
-    <form class="inline" method="post" action="${base}/publier"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn ok" type="submit">Publier sur le site vitrine</button></form>
+    <form class="inline" method="post" action="${base}/publier"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn btn-primary" type="submit">Publier sur le site vitrine</button></form>
   </c:if>
   <c:if test="${offre.statut == 'PUBLIEE'}">
-    <form class="inline" method="post" action="${base}/suspendre"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn sec" type="submit">Suspendre</button></form>
+    <form class="inline" method="post" action="${base}/suspendre"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn" type="submit">Suspendre</button></form>
   </c:if>
   <c:if test="${offre.statut == 'SUSPENDUE'}">
-    <form class="inline" method="post" action="${base}/reprendre"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn ok" type="submit">Reprendre</button></form>
+    <form class="inline" method="post" action="${base}/reprendre"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn btn-primary" type="submit">Reprendre</button></form>
   </c:if>
   <c:if test="${offre.statut == 'PUBLIEE' || offre.statut == 'SUSPENDUE'}">
     <form class="inline" method="post" action="${base}/terminer" onsubmit="return confirm('Terminer cette offre ?');">
       <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-      <button class="btn sec" type="submit">Terminer</button></form>
+      <button class="btn" type="submit">Terminer</button></form>
   </c:if>
   <c:if test="${offre.statut != 'ANNULEE' && offre.statut != 'TERMINEE'}">
     <form class="inline" method="post" action="${base}/annuler" onsubmit="return confirm('Annuler cette offre ? Cette action est definitive.');">
@@ -66,7 +70,7 @@
 
 <%-- Criteres : obligatoires (classement) puis souhaites (affichage seulement) --%>
 <c:forEach items="${[obligatoires, souhaites]}" var="liste" varStatus="st">
-  <div class="carte">
+  <div class="card" style="margin-top:16px">
     <h2 style="font-size:1.05rem;margin-top:0">${st.first ? 'Criteres obligatoires (servent au classement)' : 'Criteres souhaites (affichage seulement)'}</h2>
     <c:if test="${empty liste}"><p>Aucun critere.</p></c:if>
     <c:if test="${not empty liste}">
@@ -96,11 +100,11 @@
 </c:forEach>
 
 <c:if test="${offre.statut == 'BROUILLON'}">
-  <div class="carte">
+  <div class="card" style="margin-top:16px">
     <h2 style="font-size:1.05rem;margin-top:0">Ajouter un critere</h2>
     <form method="post" action="${base}/criteres">
       <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-      <div class="grille">
+      <div class="grid g2">
         <div>
           <label>Type</label>
           <select name="typeCritere">
@@ -136,4 +140,4 @@
   </script>
 </c:if>
 
-<jsp:include page="/WEB-INF/views/recrutement/fragments/pied.jsp"/>
+</t:layout>

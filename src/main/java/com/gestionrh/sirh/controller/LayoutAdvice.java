@@ -50,7 +50,7 @@ public class LayoutAdvice {
 
         EmployeModel employe = employes.trouverParLogin(auth.getName()).orElse(null);
         if (employe != null) {
-            model.addAttribute("notifications", notifications.recentes(employe.getId(), "RH".equals(role)));
+            model.addAttribute("notifications", notifications.recentes(employe.getId(), role));
             model.addAttribute("nbNotifications", notifications.nonLues(employe.getId()));
         }
     }

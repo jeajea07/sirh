@@ -15,6 +15,7 @@ import com.gestionrh.sirh.service.dto.NotificationVue;
 public class NotificationService {
 
     private static final String PREFIXE_A_TRAITER = "Nouvelle demande à traiter";
+    private static final String PREFIXE_DEMANDEUR = "Votre demande";
     private static final DateTimeFormatter JOUR_HEURE = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final NotificationRepository notifications;
@@ -24,11 +25,11 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public List<NotificationVue> recentes(Integer idEmploye, boolean estRh) {
+    public List<NotificationVue> recentes(Integer idEmploye, String role) {
         List<NotificationVue> vues = new ArrayList<>();
         for (NotificationModel n : notifications.findTop10ByIdDestinataireOrderByIdDesc(idEmploye)) {
             vues.add(new NotificationVue(n.getMessages(), n.getDateEnvoi().format(JOUR_HEURE),
-                    lien(n, estRh), n.isLue()));
+                    lien(n, role), n.isLue()));
         }
         return vues;
     }
@@ -43,14 +44,25 @@ public class NotificationService {
         notifications.marquerToutesLues(idEmploye);
     }
 
-    private static String lien(NotificationModel n, boolean estRh) {
-        if (n.getIdDemandeBesoin() == null) {
+    private static String lien(NotificationModel n, String role) {
+        if (n.getIdDemandeBesoin() == null || n.getMessages() == null) {
             return null;
         }
-        boolean aTraiter = n.getMessages() != null && n.getMessages().startsWith(PREFIXE_A_TRAITER);
-        if (aTraiter) {
-            return estRh ? "/rh/demandes/" + n.getIdDemandeBesoin() : null;
+        if (n.getMessages().startsWith(PREFIXE_A_TRAITER)) {
+            if ("RH".equals(role)) {
+                return "/rh/demandes/" + n.getIdDemandeBesoin();
+            }
+            if ("FINANCE".equals(role)) {
+                return "/finance/demandes/" + n.getIdDemandeBesoin();
+            }
+            if ("DG".equals(role)) {
+                return "/dg/demandes/" + n.getIdDemandeBesoin();
+            }
+            return null;
         }
-        return "/demandes/" + n.getIdDemandeBesoin();
+        if (n.getMessages().startsWith(PREFIXE_DEMANDEUR)) {
+            return "/demandes/" + n.getIdDemandeBesoin();
+        }
+        return null;
     }
 }

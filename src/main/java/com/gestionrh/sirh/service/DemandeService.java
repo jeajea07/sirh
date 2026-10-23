@@ -11,6 +11,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionrh.sirh.dto.DemandeResumeDTO;
 import com.gestionrh.sirh.model.CircuitValidationModel;
 import com.gestionrh.sirh.model.CritereRecrutementModel;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
@@ -20,7 +21,6 @@ import com.gestionrh.sirh.model.NotificationModel;
 import com.gestionrh.sirh.model.PosteModel;
 import com.gestionrh.sirh.model.TypeContratModel;
 import com.gestionrh.sirh.model.ValidationEtapeModel;
-import com.gestionrh.sirh.service.dto.DemandeResumeDTO;
 import com.gestionrh.sirh.repository.CircuitValidationRepository;
 import com.gestionrh.sirh.repository.CritereRecrutementRepository;
 import com.gestionrh.sirh.repository.DemandeBesoinRepository;

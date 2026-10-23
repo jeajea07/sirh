@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.service.dto;
+package com.gestionrh.sirh.dto;
 
 import java.math.BigDecimal;
 

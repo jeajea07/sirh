@@ -56,7 +56,10 @@ public class FinanceController {
 
     @GetMapping("/historique")
     public String historique(Authentication auth, Model model) {
-        model.addAttribute("lignes", service.historique(moi(auth).getId()));
+        boolean vueDg = auth.getAuthorities().stream().anyMatch(a -> "ACCES_DG".equals(a.getAuthority()));
+        // Le DG connecté sur cet espace voit les décisions de tout le monde, pas seulement les siennes.
+        model.addAttribute("lignes", service.historique(vueDg ? null : moi(auth).getId()));
+        model.addAttribute("vueDg", vueDg);
         return "finance/historique";
     }
 

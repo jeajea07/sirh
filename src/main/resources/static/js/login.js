@@ -7,8 +7,15 @@
   var alerte = form.querySelector('.form-errors');
   var bouton = form.querySelector('button[type=submit]');
   var texteBouton = bouton.textContent;
+  var champLogin = form.querySelector('#login-email');
+  var loginEnvoye = form.querySelector('input[name="login"]');
   var champMdp = form.querySelector('#mdp');
   var boutonVisibilite = form.querySelector('.password-toggle-btn');
+  var erreurConnexion = form.querySelector('#erreur-connexion');
+
+  function effacerAncienneErreur() {
+    if (erreurConnexion) { erreurConnexion.remove(); }
+  }
 
   if (champMdp && boutonVisibilite) {
     boutonVisibilite.addEventListener('click', function () {
@@ -33,8 +40,17 @@
   form.addEventListener('submit', function (e) {
     var manquants = [];
     var premier = null;
+    var roleChoisi = form.querySelector('input[name="roleChoisi"]:checked');
+    var blocRole = form.querySelector('.role-choice');
+
+    if (blocRole) { blocRole.classList.toggle('error', !roleChoisi); }
+    if (!roleChoisi) {
+      manquants.push('Rôle');
+      premier = form.querySelector('input[name="roleChoisi"]');
+    }
 
     Array.prototype.forEach.call(form.querySelectorAll('[required]'), function (champ) {
+      if (champ.type === 'radio') { return; }
       var vide = estVide(champ);
       var bloc = champ.closest('.field');
       if (bloc) { bloc.classList.toggle('error', vide); }
@@ -55,14 +71,24 @@
 
     alerte.className = 'form-errors';
     alerte.innerHTML = '';
+    // Le serveur compare ce rôle au rôle réellement enregistré pour ce compte.
+    loginEnvoye.value = roleChoisi.value + '|' + champLogin.value;
     bouton.disabled = true;              // évite le double envoi
     bouton.textContent = 'Connexion…';
   });
 
   // l'erreur disparaît dès que l'on retape dans le champ
   form.addEventListener('input', function (e) {
+    effacerAncienneErreur();
     var bloc = e.target.closest('.field');
     if (bloc) { bloc.classList.remove('error'); }
+  });
+  form.addEventListener('change', function (e) {
+    effacerAncienneErreur();
+    if (e.target.name === 'roleChoisi') {
+      var bloc = e.target.closest('.role-choice');
+      if (bloc) { bloc.classList.remove('error'); }
+    }
   });
 
   // retour arrière du navigateur : le bouton ne doit pas rester bloqué

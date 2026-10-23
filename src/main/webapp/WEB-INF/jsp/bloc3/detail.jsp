@@ -185,18 +185,46 @@
           <form method="post" action="<c:url value='/bloc3/selections/${selection.idSelection}/transfert'/>">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
             <div class="form-grid">
-              <div class="field"><label for="referenceBloc4">Référence de réception du Bloc 4</label><input id="referenceBloc4" type="text" name="referenceBloc4"></div>
-              <div class="field"><label for="erreurTransfert">Motif si le transfert a échoué</label><input id="erreurTransfert" type="text" name="erreurTransfert"></div>
+              <div class="field">
+                <label for="idPoste">Poste du salarié</label>
+                <select id="idPoste" name="idPoste" required>
+                  <option value="">Choisir un poste…</option>
+                  <c:forEach var="p" items="${postes}">
+                    <option value="${p.id}"><c:out value="${p.designation}"/></option>
+                  </c:forEach>
+                </select>
+              </div>
+              <div class="field">
+                <label for="idDepartement">Département d'affectation</label>
+                <select id="idDepartement" name="idDepartement" required>
+                  <option value="">Choisir un département…</option>
+                  <c:forEach var="d" items="${departements}">
+                    <option value="${d.id}"><c:out value="${d.designation}"/></option>
+                  </c:forEach>
+                </select>
+                <span class="hint">Ces informations créent le salarié, son contrat, son affectation et son onboarding.</span>
+              </div>
             </div>
-            <div class="row wrap" style="margin-top:10px">
-              <button class="btn btn-ok" name="transmis" value="true" type="submit">Confirmer le transfert</button>
-              <button class="btn btn-danger" name="transmis" value="false" type="submit">Enregistrer un échec</button>
-            </div>
+            <button class="btn btn-primary" name="transmis" value="true" type="submit" style="margin-top:10px">Transférer et créer le contrat</button>
           </form>
+          <details style="margin-top:12px">
+            <summary class="btn btn-sm">Transfert manuel (dépannage)</summary>
+            <form method="post" action="<c:url value='/bloc3/selections/${selection.idSelection}/transfert'/>" class="stack" style="margin-top:8px">
+              <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+              <div class="form-grid">
+                <div class="field"><label for="referenceBloc4">Référence de réception du Bloc 4</label><input id="referenceBloc4" type="text" name="referenceBloc4"></div>
+                <div class="field"><label for="erreurTransfert">Motif si le transfert a échoué</label><input id="erreurTransfert" type="text" name="erreurTransfert"></div>
+              </div>
+              <div class="row wrap" style="margin-top:10px">
+                <button class="btn btn-ok" name="transmis" value="true" type="submit">Confirmer manuellement</button>
+                <button class="btn btn-danger" name="transmis" value="false" type="submit">Enregistrer un échec</button>
+              </div>
+            </form>
+          </details>
         </c:if>
       </c:otherwise>
     </c:choose>
-    <p class="hint">Le transfert inter-blocs réel doit être raccordé à l’interface du Bloc 4 ; cette page enregistre sa référence et son résultat.</p>
+    <p class="hint">Le transfert automatique construit un dossier Bloc 4 à partir du recrutement confirmé. Le transfert manuel reste disponible pour dépanner ou enregistrer une réception externe.</p>
   </section>
 
   <section class="card stack" style="margin-top:16px">

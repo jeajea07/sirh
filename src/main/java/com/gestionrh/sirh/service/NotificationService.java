@@ -44,7 +44,33 @@ public class NotificationService {
         notifications.marquerToutesLues(idEmploye);
     }
 
+    @Transactional
+    public void notifier(Integer idDestinataire, String typeObjet, Integer idObjet, String message) {
+        if (idDestinataire == null || message == null || message.isBlank()) {
+            return;
+        }
+        NotificationModel n = new NotificationModel();
+        n.setIdDestinataire(idDestinataire);
+        n.setTypeObjet(typeObjet);
+        n.setIdObjet(idObjet);
+        n.setMessages(message);
+        n.setDateEnvoi(java.time.LocalDateTime.now());
+        n.setLue(false);
+        notifications.save(n);
+    }
+
     private static String lien(NotificationModel n, String role) {
+        // Le type d'objet du Bloc 4 doit être testé avant l'ancien champ demande.
+        if (n.getTypeObjet() != null && n.getIdObjet() != null) {
+            return switch (n.getTypeObjet()) {
+                case "CONTRAT" -> "RH".equals(role) ? "/rh/contrats/" + n.getIdObjet() : "/mes-taches";
+                case "ONBOARDING" -> "RH".equals(role) ? "/rh/onboardings/" + n.getIdObjet() : "/mes-taches";
+                case "TACHE" -> "/mes-taches";
+                case "DOCUMENT" -> "RH".equals(role) ? "/rh/documents" : "/mes-taches";
+                case "DECLARATION" -> "RH".equals(role) ? "/rh/formalites/" + n.getIdObjet() : "/mes-taches";
+                default -> null;
+            };
+        }
         if (n.getIdDemandeBesoin() == null || n.getMessages() == null) {
             return null;
         }

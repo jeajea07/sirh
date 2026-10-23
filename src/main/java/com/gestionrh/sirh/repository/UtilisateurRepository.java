@@ -10,7 +10,8 @@ import com.gestionrh.sirh.model.UtilisateurModel;
 
 public interface UtilisateurRepository extends JpaRepository<UtilisateurModel, Integer> {
 
-    /** Retrouve le compte à partir de l'email ou du matricule de l'employé. */
+    java.util.Optional<UtilisateurModel> findByIdEmploye(Integer idEmploye);
+
     /** Retrouve le compte à partir de l'email de l'employé. */
     @Query(value = """
             SELECT u.*

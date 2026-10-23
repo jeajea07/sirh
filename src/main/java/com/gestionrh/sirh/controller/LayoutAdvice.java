@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import com.gestionrh.sirh.model.EmployeModel;
 import com.gestionrh.sirh.repository.EmployeRepository;
 import com.gestionrh.sirh.service.NotificationService;
+import com.gestionrh.sirh.service.OnboardingService;
 
 @ControllerAdvice
 public class LayoutAdvice {
@@ -24,10 +25,13 @@ public class LayoutAdvice {
 
     private final EmployeRepository employes;
     private final NotificationService notifications;
+    private final OnboardingService onboarding;
 
-    public LayoutAdvice(EmployeRepository employes, NotificationService notifications) {
+    public LayoutAdvice(EmployeRepository employes, NotificationService notifications,
+                        OnboardingService onboarding) {
         this.employes = employes;
         this.notifications = notifications;
+        this.onboarding = onboarding;
     }
 
     @ModelAttribute
@@ -52,6 +56,7 @@ public class LayoutAdvice {
         if (employe != null) {
             model.addAttribute("notifications", notifications.recentes(employe.getId(), role));
             model.addAttribute("nbNotifications", notifications.nonLues(employe.getId()));
+            model.addAttribute("nbTaches", onboarding.compterTachesDe(employe.getId()));
         }
     }
 

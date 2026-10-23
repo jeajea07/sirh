@@ -19,6 +19,12 @@ public class NotificationModel {
     @Column(name = "id_demande_besoin")
     private Integer idDemandeBesoin;
 
+    @Column(name = "type_objet")
+    private String typeObjet;
+
+    @Column(name = "id_objet")
+    private Integer idObjet;
+
     @Column(name = "messages", nullable = false)
     private String messages;
 
@@ -36,6 +42,12 @@ public class NotificationModel {
 
     public Integer getIdDemandeBesoin() { return idDemandeBesoin; }
     public void setIdDemandeBesoin(Integer idDemandeBesoin) { this.idDemandeBesoin = idDemandeBesoin; }
+
+    public String getTypeObjet() { return typeObjet; }
+    public void setTypeObjet(String typeObjet) { this.typeObjet = typeObjet; }
+
+    public Integer getIdObjet() { return idObjet; }
+    public void setIdObjet(Integer idObjet) { this.idObjet = idObjet; }
 
     public String getMessages() { return messages; }
     public void setMessages(String messages) { this.messages = messages; }

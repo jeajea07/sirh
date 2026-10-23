@@ -7,10 +7,22 @@
   var alerte = form.querySelector('.form-errors');
   var bouton = form.querySelector('button[type=submit]');
   var texteBouton = bouton.textContent;
+  var champMdp = form.querySelector('#mdp');
+  var boutonVisibilite = form.querySelector('.password-toggle-btn');
+
+  if (champMdp && boutonVisibilite) {
+    boutonVisibilite.addEventListener('click', function () {
+      var afficher = champMdp.type === 'password';
+      champMdp.type = afficher ? 'text' : 'password';
+      boutonVisibilite.setAttribute('aria-pressed', afficher ? 'true' : 'false');
+      boutonVisibilite.setAttribute('aria-label', afficher ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+      champMdp.focus();
+    });
+  }
 
   function estVide(champ) {
     // le mot de passe n'est jamais "nettoyé" : seuls les espaces autour de l'identifiant le sont
-    return champ.type === 'password' ? champ.value === '' : !champ.value.trim();
+    return champ.name === 'mdp' ? champ.value === '' : !champ.value.trim();
   }
 
   function remettreBouton() {

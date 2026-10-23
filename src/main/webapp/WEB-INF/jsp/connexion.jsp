@@ -42,7 +42,13 @@
       </div>
       <div class="field">
         <label for="mdp">Mot de passe *</label>
-        <input type="password" id="mdp" name="mdp" required autocomplete="current-password">
+        <div class="password-toggle">
+          <input type="password" id="mdp" name="mdp" required autocomplete="current-password">
+          <button class="password-toggle-btn" type="button" aria-label="Afficher le mot de passe" aria-pressed="false" aria-controls="mdp">
+            <svg class="icon-eye" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="icon-eye-off" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.8M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.1 0 2.1-.2 3-.5"/></svg>
+          </button>
+        </div>
       </div>
 
       <button class="btn btn-primary btn-block" type="submit">Se connecter</button>

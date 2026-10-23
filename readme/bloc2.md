@@ -338,6 +338,10 @@ Identité et contacts du candidat, poste et offre concernés, date de recrutemen
 
 ---
 
+## Documentation technique du bloc 2A
+
+La documentation détaillée, les diagrammes et les maquettes sont dans [`b2a/bloc2a.md`](b2a/bloc2a.md), [`b2a/user-flow.md`](b2a/user-flow.md) et [`b2a/maquettes/`](b2a/maquettes/). Le bloc 2A ajoute les packages `*.recrutement`, les migrations `b2a_recrutement.sql` et `b2a_donnees_test.sql`, les routes RH/publiques décrites dans le guide, les paramètres `app.mail.*`, `app.cv.*` et `app.recrutement.*`, ainsi que les starters mail/validation. L'événement `DossierValideEvent` constitue le point d'intégration candidat vers le bloc 2B; aucun compte candidat n'est créé ici.
+
 ## Point encore à voir
 
 1. **Champs du CV numérique** : quels champs exactement ? Proposition de départ : identité et contacts, études, expériences, compétences, langues, disponibilité.

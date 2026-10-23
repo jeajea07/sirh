@@ -3,6 +3,8 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title><c:out value="${titrePage}"/> - SIRH</title>
+<link rel="stylesheet" href="<c:url value='/css/base.css'/>">
+<link rel="stylesheet" href="<c:url value='/css/components.css'/>">
 <style>body{font-family:system-ui,sans-serif;max-width:960px;margin:2rem auto;padding:0 1rem;color:#243447}article{border:1px solid #d8dee8;border-radius:8px;padding:1rem;margin:1rem 0}a{color:#12569b}.muted{color:#596579}</style></head><body>
 <header><a href="${pageContext.request.contextPath}/offres">SIRH — Recrutement</a></header>
 <main><h1><c:out value="${titrePage}"/></h1>

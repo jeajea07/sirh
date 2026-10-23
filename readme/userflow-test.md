@@ -42,10 +42,11 @@ migrations/bloc4_teste.sql
 Ou, avec le script fourni (build + WAR lancé hors des chemins avec espace + attente) :
 
 ```bash
-./scripts/recette-locale.sh db-reset --yes   # (re)crée la base et applique les migrations
-./scripts/recette-locale.sh start           # démarre l'application
-./scripts/recette-locale.sh smoke           # contrôle HTTP des écrans principaux
-./scripts/recette-locale.sh stop            # arrête l'application
+./scripts/recette-locale.sh db-reset --yes     # base + données de test
+./scripts/recette-locale.sh db-reset-empty --yes # base + comptes uniquement (pas d'offres, pas de candidats)
+./scripts/recette-locale.sh start               # démarre l'application
+./scripts/recette-locale.sh smoke               # contrôle HTTP des écrans principaux
+./scripts/recette-locale.sh stop                # arrête l'application
 ```
 
 > ⚠️ **Chemin avec espace = erreur JSP.** Le WAR exécutable (`java -jar`) ne sait pas scanner
@@ -55,6 +56,15 @@ Ou, avec le script fourni (build + WAR lancé hors des chemins avec espace + att
 
 > ⚠️ **Toujours `./mvnw clean` avant de relancer** après une modification des entités/repositories :
 > sinon des classes obsolètes provoquent `BeanDefinitionOverrideException: 'candidatRepository'`.
+
+### Deux modes de réinitialisation (`.sh`)
+
+| Commande | Résultat après reset |
+|---|---|
+| `./scripts/recette-locale.sh db-reset --yes` | Schéma + **tous** les seeds (`bloc1_teste`, `b2a_donnees_test`, `bloc3_test`, `bloc4_teste`) → base avec offres (`PUBLIEE`/`BROUILLON`), candidatures, contrat `CTR-...`, onboarding `A_PREPARER` |
+| `./scripts/recette-locale.sh db-reset-empty --yes` | Schéma + **uniquement** `bloc1_teste.sql` (comptes RH/DG/FINANCE/EMPLOYE + postes/départements) → pas d'offre, pas de candidat, pas de contrat, pas d'onboarding. Idéal pour un parcours manuel complet de bout en bout. |
+
+> ⚠️ **Vitrine publique (`/offres`)** : le CSS du framework (`base.css`, `components.css`) est maintenant inclus dans `recrutement/vitrine/*.jsp`. La page publique est cohérente visuellement.
 
 ---
 

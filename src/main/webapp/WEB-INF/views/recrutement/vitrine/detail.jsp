@@ -3,6 +3,8 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title><c:out value="${offre.titre}"/> - SIRH</title>
+<link rel="stylesheet" href="<c:url value='/css/base.css'/>">
+<link rel="stylesheet" href="<c:url value='/css/components.css'/>">
 <style>body{font-family:system-ui,sans-serif;max-width:900px;margin:2rem auto;padding:0 1rem;color:#243447}.carte{border:1px solid #d8dee8;border-radius:8px;padding:1rem;margin:1rem 0}.btn{display:inline-block;padding:.65rem 1rem;border-radius:5px;background:#12569b;color:white;text-decoration:none}</style></head><body>
 <header><a href="${pageContext.request.contextPath}/offres">Retour aux offres</a></header>
 <main><h1><c:out value="${offre.titre}"/></h1>

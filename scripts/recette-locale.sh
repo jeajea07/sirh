@@ -34,16 +34,26 @@ APP_PID_FILE="${APP_PID_FILE:-/tmp/opencode/sirh-run.pid}"
 WAR="target/sirh-0.0.1-SNAPSHOT.war"
 
 # Ordre canonique des migrations de la branche integration/bloc1-4.
+# Complet : schéma + données de test (offres, candidats, contrats, onboarding...)
 MIGRATIONS=(
+  migrations/bloc1.sql
+  migrations/bloc1_teste.sql        # SEED : comptes (RH, DG, FINANCE, EMPLOYE)
+  migrations/b2a_recrutement.sql
+  migrations/b2a_donnees_test.sql   # SEED : offres, demandes, candidats
+  migrations/bloc2_test_technique.sql
+  migrations/bloc3_faneva.sql
+  migrations/bloc3_test.sql         # SEED Bloc 3
+  migrations/bloc4.sql
+  migrations/bloc4_teste.sql         # SEED Bloc 4 (contrat, employé, onboarding)
+)
+# Schéma + comptes uniquement (sans données de test : pas d'offres, pas de candidats, pas de contrat)
+SCHEMA_WITH_ACCOUNTS_ONLY=(
   migrations/bloc1.sql
   migrations/bloc1_teste.sql
   migrations/b2a_recrutement.sql
-  migrations/b2a_donnees_test.sql
   migrations/bloc2_test_technique.sql
   migrations/bloc3_faneva.sql
-  migrations/bloc3_test.sql
   migrations/bloc4.sql
-  migrations/bloc4_teste.sql
 )
 
 ASSUME_YES=0
@@ -68,7 +78,8 @@ Diagnostic :
 Base de données :
   db-create            Crée la base si elle n'existe pas
   db-init              Applique toutes les migrations dans l'ordre
-  db-reset             Supprime, recrée puis applique toutes les migrations
+  db-reset             Supprime, recrée puis applique toutes les migrations (avec données de test)
+  db-reset-empty       Même chose mais sans données de test : schéma + comptes uniquement (pas d'offres, pas de candidats, pas de contrats)
   db-shell             Ouvre psql sur la base
   db-query <sql>       Exécute une requête SQL
   db-counts            Compte les lignes des tables principales
@@ -213,14 +224,19 @@ db_create_cmd() {
 
 apply_migrations() {
   local fichier
-  for fichier in "${MIGRATIONS[@]}"; do
-    [[ -f "$fichier" ]] || {
-      echo "Migration absente : $fichier" >&2
-      return 1
-    }
-    echo "--- $fichier"
-    psql_db -q -f "$fichier"
-  done
+  if [[ "${1:-}" == "empty" ]]; then
+    for fichier in "${SCHEMA_WITH_ACCOUNTS_ONLY[@]}"; do
+      [[ -f "$fichier" ]] || { echo "Migration absente : $fichier" >&2; return 1; }
+      echo "--- $fichier"
+      psql_db -q -f "$fichier"
+    done
+  else
+    for fichier in "${MIGRATIONS[@]}"; do
+      [[ -f "$fichier" ]] || { echo "Migration absente : $fichier" >&2; return 1; }
+      echo "--- $fichier"
+      psql_db -q -f "$fichier"
+    done
+  fi
 }
 
 db_init_cmd() {
@@ -244,6 +260,18 @@ db_reset_cmd() {
   createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$DB_NAME"
   apply_migrations
   echo "Base $DB_NAME réinitialisée."
+}
+
+db_reset_empty_cmd() {
+  need pg_isready || return 1
+  confirm "Supprimer et recréer la base $DB_NAME (sans données de test, comptes uniquement) ?" || {
+    echo "Annulé."
+    return 0
+  }
+  dropdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" --if-exists "$DB_NAME"
+  createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$DB_NAME"
+  apply_migrations "empty"
+  echo "Base $DB_NAME réinitialisée (schéma + comptes uniquement, sans candidats/offres/contrats)."
 }
 
 db_shell_cmd() {
@@ -453,6 +481,7 @@ case "$COMMAND" in
   db-create)      db_create_cmd ;;
   db-init)        db_init_cmd ;;
   db-reset)       db_reset_cmd ;;
+  db-reset-empty) db_reset_empty_cmd ;;
   db-shell)       db_shell_cmd ;;
   db-query|query) db_query_cmd "$@" ;;
   db-counts)      db_counts_cmd ;;

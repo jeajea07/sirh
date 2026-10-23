@@ -41,13 +41,14 @@
           <label><input type="radio" name="roleChoisi" value="RH" required> RH</label>
           <label><input type="radio" name="roleChoisi" value="FINANCE" required> FINANCE</label>
           <label><input type="radio" name="roleChoisi" value="DG" required> DG</label>
+          <label><input type="radio" name="roleChoisi" value="CANDIDAT" required> CANDIDAT</label>
         </div>
       </fieldset>
       <div class="field">
-        <label for="login-email">Email *</label>
-        <input type="email" id="login-email" name="loginEmail" required autofocus autocomplete="username">
+        <label for="login-email">Email ou identifiant *</label>
+        <input type="text" id="login-email" name="loginEmail" required autofocus autocomplete="username">
         <input type="hidden" id="login" name="login">
-        <span class="hint">Votre email professionnel.</span>
+        <span class="hint">Email professionnel, ou identifiant candidat (ex. CAND1).</span>
       </div>
       <div class="field">
         <label for="mdp">Mot de passe *</label>

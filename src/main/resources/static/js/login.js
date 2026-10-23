@@ -72,7 +72,10 @@
     alerte.className = 'form-errors';
     alerte.innerHTML = '';
     // Le serveur compare ce rôle au rôle réellement enregistré pour ce compte.
-    loginEnvoye.value = roleChoisi.value + '|' + champLogin.value;
+    // Le candidat s'authentifie sans préfixe de rôle (identifiant ou email).
+    loginEnvoye.value = roleChoisi.value === 'CANDIDAT'
+      ? champLogin.value.trim()
+      : roleChoisi.value + '|' + champLogin.value;
     bouton.disabled = true;              // évite le double envoi
     bouton.textContent = 'Connexion…';
   });

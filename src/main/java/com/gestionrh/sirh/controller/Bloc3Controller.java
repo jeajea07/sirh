@@ -22,11 +22,18 @@ import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import com.gestionrh.sirh.enums.recrutement.CandidatureStatut;
 import com.gestionrh.sirh.model.ReponseCandidatModel;
 import com.gestionrh.sirh.model.EmployeModel;
+import com.gestionrh.sirh.model.recrutement.Candidature;
+import com.gestionrh.sirh.repository.DepartementRepository;
 import com.gestionrh.sirh.repository.EmployeRepository;
+import com.gestionrh.sirh.repository.PosteRepository;
+import com.gestionrh.sirh.repository.SelectionRepository;
+import com.gestionrh.sirh.repository.recrutement.CandidatureRepository;
 import com.gestionrh.sirh.service.Bloc3Exception;
 import com.gestionrh.sirh.service.PropositionForm;
+import com.gestionrh.sirh.service.RecrutementAdapter;
 import com.gestionrh.sirh.service.SelectionService;
 
 @Controller
@@ -34,11 +41,24 @@ import com.gestionrh.sirh.service.SelectionService;
 @PreAuthorize("hasAnyRole('RH','DG')")
 public class Bloc3Controller {
     private final SelectionService service;
+    private final RecrutementAdapter recrutementAdapter;
     private final EmployeRepository employes;
+    private final PosteRepository postes;
+    private final DepartementRepository departements;
+    private final CandidatureRepository candidatures;
+    private final SelectionRepository selections;
 
-    public Bloc3Controller(SelectionService service, EmployeRepository employes) {
+    public Bloc3Controller(SelectionService service, RecrutementAdapter recrutementAdapter,
+                           EmployeRepository employes, PosteRepository postes,
+                           DepartementRepository departements, CandidatureRepository candidatures,
+                           SelectionRepository selections) {
         this.service = service;
+        this.recrutementAdapter = recrutementAdapter;
         this.employes = employes;
+        this.postes = postes;
+        this.departements = departements;
+        this.candidatures = candidatures;
+        this.selections = selections;
     }
 
     @ExceptionHandler(Bloc3Exception.class)
@@ -81,7 +101,20 @@ public class Bloc3Controller {
                 PageRequest.of(pageValide, 10, sort)));
         model.addAttribute("q", q);
         model.addAttribute("tri", tri);
+        model.addAttribute("dossiersPrets", dossiersPretsARecevoir());
         return "bloc3/selections";
+    }
+
+    /**
+     * Candidatures du Bloc 2 arrivées en confirmation finale et pas encore reçues
+     * au Bloc 3. Permet à la RH de recevoir un dossier sans saisir d'identifiants.
+     */
+    private List<Candidature> dossiersPretsARecevoir() {
+        return candidatures
+                .findByStatutOrderByDateValidationDesc(CandidatureStatut.CONFIRMATION_FINALE)
+                .stream()
+                .filter(c -> !selections.existsByIdCandidatureB2(c.getIdCandidature()))
+                .toList();
     }
 
     @GetMapping("/selections/{id}")
@@ -189,14 +222,27 @@ public class Bloc3Controller {
     @PostMapping("/selections/{id}/transfert")
     @PreAuthorize("hasRole('RH')")
     public String transfert(@PathVariable Integer id,
-                            @RequestParam boolean transmis,
+                            @RequestParam(required = false) Boolean transmis,
                             @RequestParam(required = false) String referenceBloc4,
                             @RequestParam(required = false) String erreurTransfert,
+                            @RequestParam(required = false) Integer idPoste,
+                            @RequestParam(required = false) Integer idDepartement,
                             Authentication auth, RedirectAttributes flash) {
-        service.enregistrerTransfert(id, transmis, referenceBloc4, erreurTransfert, employe(auth).getId());
-        flash.addFlashAttribute("succes", transmis
-                ? "Le transfert au Bloc 4 a été marqué comme réussi."
-                : "L'échec du transfert a été enregistré ; vous pouvez réessayer.");
+        boolean succes = Boolean.TRUE.equals(transmis);
+        if (succes && (referenceBloc4 == null || referenceBloc4.isBlank())) {
+            var resultat = recrutementAdapter.transmettre(id, idPoste, idDepartement, employe(auth));
+            flash.addFlashAttribute("succes", resultat.dejaTransmis()
+                    ? "Ce recrutement avait déjà été transféré (référence "
+                        + resultat.reference() + ")."
+                    : "Dossier transféré au Bloc 4 : contrat " + resultat.reference()
+                        + " disponible en brouillon.");
+        } else {
+            service.enregistrerTransfert(id, succes, referenceBloc4, erreurTransfert,
+                    employe(auth).getId());
+            flash.addFlashAttribute("succes", succes
+                    ? "Le transfert au Bloc 4 a été marqué comme réussi."
+                    : "L'échec du transfert a été enregistré ; vous pouvez réessayer.");
+        }
         return redirectDetail(id);
     }
 
@@ -216,6 +262,8 @@ public class Bloc3Controller {
         model.addAttribute("decisions", service.decisions());
         model.addAttribute("typesContrat", service.typesContrat());
         model.addAttribute("typesReponse", service.typesReponse());
+        model.addAttribute("postes", postes.findAllByOrderByDesignationAsc());
+        model.addAttribute("departements", departements.findAllByOrderByDesignationAsc());
         model.addAttribute("propositionForm", new PropositionForm());
     }
 

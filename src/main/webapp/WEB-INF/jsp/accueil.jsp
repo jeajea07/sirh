@@ -20,7 +20,11 @@
       <p>Vous validez les demandes de votre département.</p>
     </c:if>
     <c:if test="${pageContext.request.isUserInRole('RH')}">
-      <p>Vous vérifiez les demandes de besoin en personnel. <a href="<c:url value='/rh/demandes'/>">Voir les demandes à vérifier</a></p>
+      <p>Vous vérifiez les demandes de besoin en personnel.</p>
+      <div class="row wrap">
+        <a class="btn btn-primary" href="<c:url value='/rh/demandes'/>">Voir les demandes à vérifier</a>
+        <a class="btn" href="<c:url value='/rh/tests'/>">Voir les candidatures et tests</a>
+      </div>
     </c:if>
     <c:if test="${pageContext.request.isUserInRole('FINANCE')}">
       <p>Vous vérifiez le budget des demandes.</p>

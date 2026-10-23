@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
 
-<t:layout titre="Résultats test technique" actif="demandes-rh">
+<t:layout titre="Résultats test technique" actif="tests-rh">
   <div class="page-head">
     <div>
       <h1>Résultats du test technique</h1>

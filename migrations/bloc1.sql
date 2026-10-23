@@ -162,8 +162,9 @@ CREATE TABLE notification (
     id_notification   INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_destinataire   INT NOT NULL,
     id_demande_besoin INT,
-    messages           TEXT NOT NULL,
+    messages          TEXT NOT NULL,
     date_envoi        TIMESTAMP NOT NULL DEFAULT NOW(),
+    lue               BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (id_destinataire)   REFERENCES employe(id_employe),
     FOREIGN KEY (id_demande_besoin) REFERENCES demande_besoin(id_demande_besoin)
 );

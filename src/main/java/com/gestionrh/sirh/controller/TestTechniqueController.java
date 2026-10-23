@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,8 +55,9 @@ public class TestTechniqueController {
     }
 
     @GetMapping("/rh/tests")
+    @Transactional(readOnly = true)
     public String testRh(Model model) {
-        List<TestTechniqueModel> sessionTests = tests.findAll();
+        List<TestTechniqueModel> sessionTests = tests.findAllWithCandidatureAndCandidat();
         List<ResultatTest> resultats = new ArrayList<>();
 
         for (TestTechniqueModel test : sessionTests) {

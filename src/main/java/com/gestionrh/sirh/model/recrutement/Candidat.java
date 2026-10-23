@@ -38,6 +38,20 @@ public class Candidat {
     @Column(length = 255)
     private String adresse;
 
+    /** Identifiant de connexion au test technique, cree par le module test (ex. CAND12). */
+    @Column(length = 100, unique = true)
+    private String identifiant;
+
+    /** Mot de passe BCrypt du compte candidat. */
+    @Column(length = 255)
+    private String motDePasse;
+
+    @Column(nullable = false)
+    private boolean actif = true;
+
+    @Column(name = "acces_cree", nullable = false)
+    private boolean accesCree = false;
+
     @Column(nullable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 
@@ -58,6 +72,18 @@ public class Candidat {
 
     public String getAdresse() { return adresse; }
     public void setAdresse(String adresse) { this.adresse = adresse; }
+
+    public String getIdentifiant() { return identifiant; }
+    public void setIdentifiant(String identifiant) { this.identifiant = identifiant; }
+
+    public String getMotDePasse() { return motDePasse; }
+    public void setMotDePasse(String motDePasse) { this.motDePasse = motDePasse; }
+
+    public boolean isActif() { return actif; }
+    public void setActif(boolean actif) { this.actif = actif; }
+
+    public boolean isAccesCree() { return accesCree; }
+    public void setAccesCree(boolean accesCree) { this.accesCree = accesCree; }
 
     public LocalDateTime getDateCreation() { return dateCreation; }
     public void setDateCreation(LocalDateTime dateCreation) { this.dateCreation = dateCreation; }

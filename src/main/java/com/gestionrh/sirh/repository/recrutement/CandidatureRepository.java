@@ -28,6 +28,14 @@ public interface CandidatureRepository extends JpaRepository<Candidature, Intege
     @EntityGraph(attributePaths = "candidat")
     List<Candidature> findByOffre_IdOffreAndStatutIn(Integer idOffre, Collection<CandidatureStatut> statuts);
 
+    /** Candidatures d'un candidat, avec leur test technique, pour l'espace candidat. */
+    @EntityGraph(attributePaths = {"candidat", "offre", "testTechnique"})
+    List<Candidature> findByCandidat_IdCandidatOrderByDateReceptionDesc(Integer idCandidat);
+
+    /** Candidatures pretes pour la selection du Bloc 3. */
+    @EntityGraph(attributePaths = {"candidat", "offre"})
+    List<Candidature> findByStatutOrderByDateValidationDesc(CandidatureStatut statut);
+
     Page<Candidature> findByOffre_IdOffre(Integer idOffre, Pageable pageable);
 
     Page<Candidature> findByOffre_IdOffreAndClassementAuto(Integer idOffre, Classement classement, Pageable pageable);

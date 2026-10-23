@@ -11,25 +11,41 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.gestionrh.sirh.model.UtilisateurModel;
+import com.gestionrh.sirh.model.recrutement.Candidat;
 import com.gestionrh.sirh.repository.UtilisateurRepository;
+import com.gestionrh.sirh.repository.recrutement.CandidatRepository;
 
 /**
- * Dit à Spring Security où lire les comptes : table utilisateur,
- * retrouvée par l'email ou le matricule de l'employé.
+ * Dit à Spring Security où lire les comptes : table utilisateur pour le
+ * personnel (rôle choisi) et table candidat pour le test technique.
  */
 @Service
 public class CompteService implements UserDetailsService {
 
     private final UtilisateurRepository repo;
+    private final CandidatRepository candidats;
 
-    public CompteService(UtilisateurRepository repo) {
+    public CompteService(UtilisateurRepository repo, CandidatRepository candidats) {
         this.repo = repo;
+        this.candidats = candidats;
     }
 
     @Override
     public UserDetails loadUserByUsername(String identifiant) throws UsernameNotFoundException {
         String saisie = identifiant == null ? "" : identifiant.trim();
         int separateur = saisie.indexOf('|');
+
+        // Pas de role prefixe : tentative compte candidat (email ou identifiant).
+        if (separateur < 1) {
+            Candidat candidat = candidats.findByEmailIgnoreCase(saisie)
+                    .or(() -> candidats.findByIdentifiant(saisie))
+                    .orElseThrow(() -> new UsernameNotFoundException("Compte introuvable : " + saisie));
+            return User.withUsername(candidat.getEmail())
+                    .password(candidat.getMotDePasse())
+                    .roles("CANDIDAT")
+                    .disabled(!candidat.isActif() || candidat.getMotDePasse() == null)
+                    .build();
+        }
         if (separateur < 1 || separateur == saisie.length() - 1) {
             throw new UsernameNotFoundException("Sélectionnez un rôle et saisissez votre email.");
         }

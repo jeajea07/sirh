@@ -9,6 +9,8 @@ public interface CandidatRepository extends JpaRepository<Candidat, Integer> {
 
     Optional<Candidat> findByEmailIgnoreCase(String email);
 
+    Optional<Candidat> findByIdentifiant(String identifiant);
+
     boolean existsByEmailIgnoreCase(String email);
 
     /** Sérialise les créations concurrentes pour la même adresse, en PostgreSQL. */

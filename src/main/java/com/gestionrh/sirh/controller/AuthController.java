@@ -24,8 +24,12 @@ public class AuthController {
 
     // login, role... sont ajoutés au modèle par LayoutAdvice
     @GetMapping("/accueil")
-    public String accueil() {
-        return "accueil";
+    public String accueil(Authentication auth) {
+        boolean candidat = auth != null
+                && auth.isAuthenticated()
+                && !(auth instanceof AnonymousAuthenticationToken)
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CANDIDAT"));
+        return candidat ? "redirect:/candidat" : "accueil";
     }
 
     @GetMapping("/acces-refuse")

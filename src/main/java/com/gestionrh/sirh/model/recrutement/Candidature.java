@@ -16,6 +16,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.time.LocalDate;
@@ -101,6 +102,17 @@ public class Candidature {
 
     private LocalDateTime dateValidation;
 
+    /** Compte de test technique cree pour le candidat. */
+    @Column(name = "acces_cree", nullable = false)
+    private boolean accesCree = false;
+
+    /** Note du test technique, transmise au Bloc 3. */
+    @Column(name = "note_finale", precision = 5, scale = 2)
+    private java.math.BigDecimal noteFinale;
+
+    @OneToOne(mappedBy = "candidature", fetch = FetchType.LAZY)
+    private com.gestionrh.sirh.model.TestTechniqueModel testTechnique;
+
     @OneToMany(mappedBy = "candidature", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CvCompetence> competences = new ArrayList<>();
 
@@ -172,6 +184,15 @@ public class Candidature {
 
     public LocalDateTime getDateValidation() { return dateValidation; }
     public void setDateValidation(LocalDateTime dateValidation) { this.dateValidation = dateValidation; }
+
+    public boolean isAccesCree() { return accesCree; }
+    public void setAccesCree(boolean accesCree) { this.accesCree = accesCree; }
+
+    public java.math.BigDecimal getNoteFinale() { return noteFinale; }
+    public void setNoteFinale(java.math.BigDecimal noteFinale) { this.noteFinale = noteFinale; }
+
+    public com.gestionrh.sirh.model.TestTechniqueModel getTestTechnique() { return testTechnique; }
+    public void setTestTechnique(com.gestionrh.sirh.model.TestTechniqueModel testTechnique) { this.testTechnique = testTechnique; }
 
     public List<CvCompetence> getCompetences() { return competences; }
     public void setCompetences(List<CvCompetence> competences) { this.competences = competences; }

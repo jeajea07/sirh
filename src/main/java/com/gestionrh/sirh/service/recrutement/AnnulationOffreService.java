@@ -44,7 +44,7 @@ public class AnnulationOffreService {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public void traiter(OffreAnnuleeEvent event) {
         Offre offre = offres.findById(event.idOffre()).orElse(null);
         if (offre == null || offre.getStatut() != OffreStatut.ANNULEE) return;

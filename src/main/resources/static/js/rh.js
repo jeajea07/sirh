@@ -5,7 +5,7 @@
   var commentaire = document.getElementById('commentaire');
 
   function verifierSalaire() {
-    if (!salaire) { return; }
+    if (!salaire || !champ || !erreur) { return; }
     var plafond = parseFloat(salaire.getAttribute('data-plafond'));
     var valeur = parseFloat(salaire.value);
     var depasse = !isNaN(plafond) && !isNaN(valeur) && valeur > plafond;

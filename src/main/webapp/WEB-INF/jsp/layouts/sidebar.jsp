@@ -14,6 +14,16 @@
       <a class="${param.actif == 'historique-rh' ? 'active' : ''}" href="<c:url value='/rh/demandes/historique'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Historique</a>
     </c:if>
 
+    <c:if test="${role == 'FINANCE'}">
+      <a class="${param.actif == 'demandes-fin' ? 'active' : ''}" href="<c:url value='/finance/demandes'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>Demandes à vérifier</a>
+      <a class="${param.actif == 'historique-fin' ? 'active' : ''}" href="<c:url value='/finance/demandes/historique'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Historique</a>
+    </c:if>
+
+    <c:if test="${role == 'DG'}">
+      <a class="${param.actif == 'demandes-dg' ? 'active' : ''}" href="<c:url value='/dg/demandes'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>Validation finale</a>
+      <a class="${param.actif == 'historique-dg' ? 'active' : ''}" href="<c:url value='/dg/demandes/historique'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Historique</a>
+    </c:if>
+
     </nav>
 
   <div class="side-foot">

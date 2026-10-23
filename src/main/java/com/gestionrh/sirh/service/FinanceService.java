@@ -80,11 +80,14 @@ public class FinanceService {
         return resultat;
     }
 
-    /** Les décisions prises par ce validateur à l'étape Finance, la plus récente d'abord. */
+    /** Les décisions prises à l'étape Finance, la plus récente d'abord. {@code idFinance} null = toutes (vue du DG). */
     @Transactional(readOnly = true)
     public List<HistoriqueRhLigne> historique(Integer idFinance) {
         List<HistoriqueRhLigne> resultat = new ArrayList<>();
-        for (ValidationEtapeModel v : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_FINANCE, idFinance)) {
+        List<ValidationEtapeModel> decisions = idFinance == null
+                ? validations.findByEtapeAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_FINANCE)
+                : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_FINANCE, idFinance);
+        for (ValidationEtapeModel v : decisions) {
             DemandeBesoinModel d = demandes.findById(v.getIdDemandeBesoin()).orElse(null);
             if (d == null) {
                 continue;

@@ -83,11 +83,14 @@ public class RhService {
         return resultat;
     }
 
-    /** Les décisions prises par ce RH à l'étape RH (validées, renvoyées, rejetées), la plus récente d'abord. */
+    /** Les décisions prises à l'étape RH, la plus récente d'abord. {@code idRh} null = toutes (vue du DG). */
     @Transactional(readOnly = true)
     public List<HistoriqueRhLigne> historique(Integer idRh) {
         List<HistoriqueRhLigne> resultat = new ArrayList<>();
-        for (ValidationEtapeModel v : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_RH, idRh)) {
+        List<ValidationEtapeModel> decisions = idRh == null
+                ? validations.findByEtapeAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_RH)
+                : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_RH, idRh);
+        for (ValidationEtapeModel v : decisions) {
             DemandeBesoinModel d = demandes.findById(v.getIdDemandeBesoin()).orElse(null);
             if (d == null) {
                 continue;

@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,16 +92,24 @@ public class OffreDepuisDemandeService {
     }
 
     private boolean demandeAcceptee(DemandeBesoinModel demande) {
-        // Le bloc 1 ne renseigne pas de statut final après le dernier avis ; on vérifie les dernières décisions requises.
-        if (demande.getStatut() != null && Set.of("REJETEE", "RETIREE", "BROUILLON").contains(demande.getStatut())) return false;
+        // L'accord final de la DG clôture la demande dans le workflow du bloc 1.
+        if (!"VALIDEE".equals(demande.getStatut())) return false;
         List<CircuitValidationModel> etapes = circuit.findAllByOrderByIdAsc().stream()
                 .filter(CircuitValidationModel::isObligatoire).toList();
-        if (etapes.isEmpty()) return false;
         Map<String, String> dernieresDecisions = new HashMap<>();
         for (ValidationEtapeModel validation : validations.findByIdDemandeBesoinOrderByIdAsc(demande.getId())) {
             dernieresDecisions.put(validation.getEtape(), validation.getDecision());
         }
-        return etapes.stream().allMatch(e -> "VALIDEE".equals(dernieresDecisions.get(e.getEtape())));
+
+        // Le dépôt des demandes démarre à RH : l'étape RESPONSABLE historique n'est pas
+        // créée par ce parcours. Si elle existe sur une ancienne demande, son avis reste requis.
+        boolean responsableValide = !dernieresDecisions.containsKey("RESPONSABLE")
+                || "VALIDEE".equals(dernieresDecisions.get("RESPONSABLE"));
+        boolean autresEtapesValidees = etapes.stream()
+                .filter(e -> !"RESPONSABLE".equals(e.getEtape()))
+                .allMatch(e -> "VALIDEE".equals(dernieresDecisions.get(e.getEtape())));
+        return responsableValide && autresEtapesValidees
+                && "VALIDEE".equals(dernieresDecisions.get("DG"));
     }
 
     private void copierCriteres(CritereRecrutementModel source, Offre offre) {

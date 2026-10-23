@@ -1,14 +1,23 @@
+-- Bloc 3
 -- Données de démonstration du Bloc 3.
 -- Exécuter après migrations/bloc3_faneva.sql.
 -- Les identifiants des blocs 2 et des utilisateurs sont des exemples.
 
 INSERT INTO b3_selection
-    (id_candidature_b2, id_offre_b2, id_candidat_b2, id_etat_dossier,
+    (id_candidature_b2, id_offre_b2, id_candidat_b2,
+     score_test, score_entretien_rh, score_entretien_tech, score_entretien_dg,
+     score_final, rang_classement, id_etat_dossier,
      elements_manquants, id_type_decision, justification, decide_par, decide_le,
      validation_obligatoire, id_etat_validation, valide_par, valide_le)
 SELECT exemple.id_candidature_b2,
        exemple.id_offre_b2,
        exemple.id_candidat_b2,
+       exemple.score_test,
+       exemple.score_entretien_rh,
+       exemple.score_entretien_tech,
+       exemple.score_entretien_dg,
+       exemple.score_final,
+       exemple.rang_classement,
        ed.id_etat_dossier,
        exemple.elements_manquants,
        d.id_type_decision,
@@ -20,12 +29,17 @@ SELECT exemple.id_candidature_b2,
        exemple.valide_par,
        exemple.valide_le
 FROM (VALUES
-    (92001, 81001, 71001, 'COMPLET', NULL::TEXT, 'RETENU',
+    (92001, 81001, 71001, 18.00, 4.50, 4.30, 4.60, 4.45, 1,
+     'COMPLET', NULL::TEXT, 'RETENU',
      'Meilleur classement après étude du dossier et des entretiens.', 102,
      DATE '2026-10-20', TRUE, 'VALIDEE', 103, DATE '2026-10-20'),
-    (92002, 81001, 71002, 'INCOMPLET', 'Justificatif d’expérience manquant', 'EN_ATTENTE',
+    (92002, 81001, 71002, NULL::NUMERIC, NULL::NUMERIC, NULL::NUMERIC,
+     NULL::NUMERIC, NULL::NUMERIC, NULL::INT,
+     'INCOMPLET', 'Justificatif d’expérience manquant', 'EN_ATTENTE',
      NULL::TEXT, 102, DATE '2026-10-20', FALSE, 'NON_REQUISE', NULL::INT, NULL::DATE)
-) AS exemple(id_candidature_b2, id_offre_b2, id_candidat_b2, etat_dossier,
+) AS exemple(id_candidature_b2, id_offre_b2, id_candidat_b2,
+             score_test, score_entretien_rh, score_entretien_tech, score_entretien_dg,
+             score_final, rang_classement, etat_dossier,
              elements_manquants, decision, justification, decide_par, decide_le,
              validation_obligatoire, etat_validation, valide_par, valide_le)
 JOIN b3_etat_dossier ed ON ed.code = exemple.etat_dossier

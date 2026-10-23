@@ -3,8 +3,8 @@
 
 INSERT INTO candidat (identifiant, nom, prenom, email, telephone, mot_de_passe, actif, acces_cree)
 VALUES
-('CAND001', 'Rakoto', 'Jean', 'jean.rakoto@example.com', '0341234567', '$2a$10$abcdefghijklmnopqrstuv', TRUE, TRUE),
-('CAND002', 'Rabe', 'Marie', 'marie.rabe@example.com', '0347654321', '$2a$10$abcdefghijklmnopqrstuv', TRUE, FALSE)
+('CAND001', 'Rakoto', 'Jean', 'jean.rakoto@example.com', '0341234567', '$2b$10$dsEOACCB3gGrOJQnvjNV1e5WI1ElhEqQu0.kI1c1120bx7/syfiCO', TRUE, TRUE),
+('CAND002', 'Rabe', 'Marie', 'marie.rabe@example.com', '0347654321', '$2b$10$.YV20rVvmJfb7sjgAmn88uiD1YTmQSZqGgGKo2ZvIdSZmLVaJAbj6', TRUE, FALSE)
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO offre (numero_offre, titre, nombre_postes, date_publication, date_limite, statut)

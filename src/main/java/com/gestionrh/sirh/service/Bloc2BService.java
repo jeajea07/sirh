@@ -1,7 +1,9 @@
 package com.gestionrh.sirh.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +21,8 @@ import com.gestionrh.sirh.repository.TestTechniqueRepository;
 
 @Service
 public class Bloc2BService {
+
+    public static final BigDecimal SEUIL_PAR_DEFAUT = new BigDecimal("10.00");
 
     private final CandidatureRepository candidatures;
     private final CandidatRepository candidats;
@@ -55,7 +59,7 @@ public class Bloc2BService {
         candidat.setAccesCree(true);
         candidature.setAccesCree(true);
         candidature.setDossierValide(true);
-        candidature.setStatut("DOSSIER_VALIDE");
+        candidature.setStatut(Bloc2BStatus.CANDIDATURE_DOSSIER_VALIDE);
 
         candidats.save(candidat);
         candidatures.save(candidature);
@@ -68,7 +72,7 @@ public class Bloc2BService {
         TestTechniqueModel test = tests.findById(idTestTechnique)
                 .orElseThrow(() -> new IllegalArgumentException("Test technique introuvable : " + idTestTechnique));
 
-        test.setStatut("RELANCE");
+        test.setStatut(Bloc2BStatus.TEST_RELANCE);
         test.setRelance(true);
         tests.save(test);
     }
@@ -94,7 +98,7 @@ public class Bloc2BService {
         }
 
         test.setNoteGenerale(note);
-        test.setStatut("CORRIGE");
+        test.setStatut(Bloc2BStatus.TEST_CORRIGE);
         tests.save(test);
         reponses.saveAll(reponsesDuTest);
     }
@@ -109,16 +113,82 @@ public class Bloc2BService {
         boolean admis = note.compareTo(seuil == null ? BigDecimal.ZERO : seuil) >= 0;
 
         candidature.setNoteFinale(note.doubleValue());
-        candidature.setStatut(admis ? "ADMIS" : "REFUSE");
+        candidature.setStatut(admis ? Bloc2BStatus.CANDIDATURE_ADMIS : Bloc2BStatus.CANDIDATURE_REFUSE);
         candidatures.save(candidature);
 
         if (test != null) {
-            test.setStatut(admis ? "ADMIS" : "REFUSE");
+            test.setStatut(admis ? Bloc2BStatus.TEST_ADMIS : Bloc2BStatus.TEST_REFUSE);
             test.setSeuilNote(seuil == null ? BigDecimal.ZERO : seuil);
             tests.save(test);
         }
 
         return new Bloc2BResultat(admis, note, seuil == null ? BigDecimal.ZERO : seuil);
+    }
+
+    @Transactional
+    public void soumettreTestTechnique(Long idCandidature, Map<String, String> reponsesSoumises) {
+        CandidatureModel candidature = candidatures.findById(idCandidature)
+                .orElseThrow(() -> new IllegalArgumentException("Candidature introuvable : " + idCandidature));
+
+        TestTechniqueModel test = tests.findByCandidature(candidature)
+                .orElseGet(() -> {
+                    TestTechniqueModel nouveau = new TestTechniqueModel();
+                    nouveau.setCandidature(candidature);
+                    nouveau.setStatut(Bloc2BStatus.TEST_EN_COURS);
+                    nouveau.setSeuilNote(SEUIL_PAR_DEFAUT);
+                    return nouveau;
+                });
+
+        List<ReponseTestTechniqueModel> reponsesExistantes = reponses.findByTestTechniqueOrderByIdReponseAsc(test);
+        List<ReponseTestTechniqueModel> resultat = reponsesExistantes.stream()
+                .filter(rep -> rep.getQuestionRef() != null)
+                .toList();
+
+        BigDecimal note = BigDecimal.ZERO;
+        for (Bloc2BQuestion question : Bloc2BQuestion.QUESTIONS) {
+            String reference = question.reference();
+            String valeur = reponsesSoumises.getOrDefault(reference, "").trim();
+            ReponseTestTechniqueModel reponse = resultat.stream()
+                    .filter(r -> reference.equals(r.getQuestionRef()))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        ReponseTestTechniqueModel n = new ReponseTestTechniqueModel();
+                        n.setTestTechnique(test);
+                        n.setQuestionRef(reference);
+                        n.setTypeQuestion(question.type());
+                        return n;
+                    });
+
+            reponse.setReponseTextuelle(valeur);
+            reponse.setQuestionRef(reference);
+            reponse.setTypeQuestion(question.type());
+            reponse.setCorrigee(true);
+
+            boolean correct = estCorrect(question, valeur);
+            reponse.setCorrect(correct);
+            reponse.setNote(correct ? BigDecimal.ONE : BigDecimal.ZERO);
+            if (correct) {
+                note = note.add(BigDecimal.ONE);
+            }
+
+            if (!resultat.contains(reponse)) {
+                test.getReponses().add(reponse);
+            }
+        }
+
+        test.setNoteGenerale(note);
+        test.setDateFin(LocalDateTime.now());
+        test.setStatut(note.compareTo(test.getSeuilNote()) >= 0 ? Bloc2BStatus.TEST_CORRIGE : Bloc2BStatus.TEST_CORRIGE);
+        candidature.setStatut(Bloc2BStatus.CANDIDATURE_TEST_OK);
+        candidature.setNoteFinale(note.doubleValue());
+
+        tests.save(test);
+        reponses.saveAll(test.getReponses());
+        candidatures.save(candidature);
+    }
+
+    private boolean estCorrect(Bloc2BQuestion question, String valeur) {
+        return question != null && question.matches(valeur);
     }
 
     public record AccesCandidat(String identifiant, String motDePasseTemporaire) {

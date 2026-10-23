@@ -9,6 +9,11 @@
     <a class="${param.actif == 'nouvelle' ? 'active' : ''}" href="<c:url value='/demandes/nouvelle'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Nouvelle demande</a>
     <a class="${param.actif == 'demandes' ? 'active' : ''}" href="<c:url value='/demandes'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/></svg>Mes demandes</a>
 
+    <c:if test="${role == 'CANDIDAT'}">
+      <a class="${param.actif == 'candidat' ? 'active' : ''}" href="<c:url value='/candidat'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V7a2 2 0 012-2h12a2 2 0 012 2v12"/><path d="M8 11h8M8 15h5"/></svg>Mon espace</a>
+      <a class="${param.actif == 'test-candidat' ? 'active' : ''}" href="<c:url value='/candidat'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a2 2 0 012 2v14l-4-3-4 3-4-3-4 3V5a2 2 0 012-2z"/><path d="M8 8h8M8 12h8"/></svg>Test technique</a>
+    </c:if>
+
     <c:if test="${role == 'RH'}">
       <a class="${param.actif == 'demandes-rh' ? 'active' : ''}" href="<c:url value='/rh/demandes'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg>Demandes à vérifier</a>
       <a class="${param.actif == 'tests-rh' ? 'active' : ''}" href="<c:url value='/rh/tests'/>"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a2 2 0 012 2v14l-4-3-4 3-4-3-4 3V5a2 2 0 012-2z"/><path d="M8 8h8M8 12h8"/></svg>Candidatures / Tests</a>

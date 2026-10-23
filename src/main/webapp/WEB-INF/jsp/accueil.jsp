@@ -32,15 +32,23 @@
     <c:if test="${pageContext.request.isUserInRole('DG')}">
       <p>Vous prenez la décision finale sur les demandes.</p>
     </c:if>
+    <c:if test="${pageContext.request.isUserInRole('CANDIDAT')}">
+      <p>Vous pouvez consulter votre candidature et accéder au test technique associé.</p>
+      <div class="row wrap">
+        <a class="btn btn-primary" href="<c:url value='/candidat'/>">Voir mon espace candidat</a>
+      </div>
+    </c:if>
   </div>
 
-  <div class="card stack" style="margin-top:16px">
-    <h2>Demande de besoin en personnel</h2>
-    <p class="muted">Tout employé peut demander un recrutement. Vous suivez ici l'avancement de chaque demande.</p>
-    <div class="row wrap">
-      <a class="btn btn-primary" href="<c:url value='/demandes/nouvelle'/>">Faire une demande</a>
-      <a class="btn" href="<c:url value='/demandes'/>">Suivre mes demandes</a>
+  <c:if test="${not pageContext.request.isUserInRole('CANDIDAT')}">
+    <div class="card stack" style="margin-top:16px">
+      <h2>Demande de besoin en personnel</h2>
+      <p class="muted">Tout employé peut demander un recrutement. Vous suivez ici l'avancement de chaque demande.</p>
+      <div class="row wrap">
+        <a class="btn btn-primary" href="<c:url value='/demandes/nouvelle'/>">Faire une demande</a>
+        <a class="btn" href="<c:url value='/demandes'/>">Suivre mes demandes</a>
+      </div>
     </div>
-  </div>
+  </c:if>
 
 </t:layout>

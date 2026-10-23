@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +21,8 @@ import com.gestionrh.sirh.repository.CandidatRepository;
 import com.gestionrh.sirh.repository.CandidatureRepository;
 import com.gestionrh.sirh.repository.ReponseTestTechniqueRepository;
 import com.gestionrh.sirh.repository.TestTechniqueRepository;
+import com.gestionrh.sirh.repository.UtilisateurRepository;
+import com.gestionrh.sirh.security.CompteService;
 
 @ExtendWith(MockitoExtension.class)
 class Bloc2BServiceTest {
@@ -38,6 +39,9 @@ class Bloc2BServiceTest {
     @Mock
     private CandidatRepository candidats;
 
+    @Mock
+    private UtilisateurRepository utilisateurs;
+
     @InjectMocks
     private Bloc2BService service;
 
@@ -45,7 +49,7 @@ class Bloc2BServiceTest {
     void creerAccesCandidatGenereIdentifiantEtMotDePasseTemporaire() {
         CandidatureModel candidature = new CandidatureModel();
         candidature.setIdCandidature(12L);
-        candidature.setStatut("DOSSIER_VALIDE");
+        candidature.setStatut(Bloc2BStatus.CANDIDATURE_DOSSIER_VALIDE);
         CandidatModel candidat = new CandidatModel();
         candidat.setIdCandidat(5L);
         candidat.setEmail("jean@test.fr");
@@ -66,7 +70,7 @@ class Bloc2BServiceTest {
     void relancerTestTechniqueConserveLesReponsesExistantes() {
         TestTechniqueModel test = new TestTechniqueModel();
         test.setIdTestTechnique(7L);
-        test.setStatut("EN_COURS");
+        test.setStatut(Bloc2BStatus.TEST_EN_COURS);
         test.setNoteGenerale(BigDecimal.ZERO);
 
         ReponseTestTechniqueModel reponse = new ReponseTestTechniqueModel();
@@ -82,7 +86,7 @@ class Bloc2BServiceTest {
         Bloc2BService serviceWithEncoder = new Bloc2BService(candidatures, candidats, tests, reponses, new BCryptPasswordEncoder());
         serviceWithEncoder.relancerTestTechnique(7L);
 
-        assertThat(test.getStatut()).isEqualTo("RELANCE");
+        assertThat(test.getStatut()).isEqualTo(Bloc2BStatus.TEST_RELANCE);
         assertThat(test.getReponses()).hasSize(1);
     }
 
@@ -90,23 +94,40 @@ class Bloc2BServiceTest {
     void confirmerCandidatsAdmisAppliqueLeSeuil() {
         CandidatureModel candidature = new CandidatureModel();
         candidature.setIdCandidature(21L);
-        candidature.setStatut("TEST_OK");
+        candidature.setStatut(Bloc2BStatus.CANDIDATURE_TEST_OK);
 
         TestTechniqueModel test = new TestTechniqueModel();
         test.setIdTestTechnique(4L);
         test.setCandidature(candidature);
-        test.setSeuilNote(new BigDecimal("10.0"));
+        test.setSeuilNote(Bloc2BService.SEUIL_PAR_DEFAUT);
         test.setNoteGenerale(new BigDecimal("12.5"));
-        test.setStatut("ADMIS");
+        test.setStatut(Bloc2BStatus.TEST_ADMIS);
         candidature.setTestTechnique(test);
 
         when(candidatures.findById(21L)).thenReturn(Optional.of(candidature));
         when(tests.findByCandidature(candidature)).thenReturn(Optional.of(test));
 
         Bloc2BService serviceWithEncoder = new Bloc2BService(candidatures, candidats, tests, reponses, new BCryptPasswordEncoder());
-        Bloc2BService.Bloc2BResultat resultat = serviceWithEncoder.confirmerCandidatureAdmise(21L, new BigDecimal("10.0"));
+        Bloc2BService.Bloc2BResultat resultat = serviceWithEncoder.confirmerCandidatureAdmise(21L, Bloc2BService.SEUIL_PAR_DEFAUT);
 
         assertThat(resultat.admis()).isTrue();
-        assertThat(candidature.getStatut()).isEqualTo("ADMIS");
+        assertThat(candidature.getStatut()).isEqualTo(Bloc2BStatus.CANDIDATURE_ADMIS);
+    }
+
+    @Test
+    void compteServiceAuthentifieUnCandidatParEmail() {
+        CandidatModel candidat = new CandidatModel();
+        candidat.setEmail("candidat@test.fr");
+        candidat.setMotDePasse(new BCryptPasswordEncoder().encode("secret"));
+        candidat.setActif(true);
+
+        when(candidats.findByEmail("candidat@test.fr")).thenReturn(Optional.of(candidat));
+
+        CompteService compteService = new CompteService(utilisateurs, candidats);
+
+        var user = compteService.loadUserByUsername("candidat@test.fr");
+
+        assertThat(user.getUsername()).isEqualTo("candidat@test.fr");
+        assertThat(user.getAuthorities()).anyMatch(a -> a.getAuthority().equals("ROLE_CANDIDAT"));
     }
 }

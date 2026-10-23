@@ -11,6 +11,10 @@
     <a class="btn btn-primary" href="<c:url value='/accueil'/>">Retour accueil</a>
   </div>
 
+  <c:if test="${not empty success}">
+    <div class="alert alert-ok"><c:out value="${success}" /></div>
+  </c:if>
+
   <div class="card">
     <div class="card-head">
       <h2>Candidats</h2>
@@ -29,6 +33,7 @@
               <th>Candidat</th>
               <th>Note</th>
               <th>Décision</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -45,6 +50,13 @@
                       <span class="badge badge-bad">Refusé</span>
                     </c:otherwise>
                   </c:choose>
+                </td>
+                <td>
+                  <form method="post" action="<c:url value='/rh/tests/${resultat.idCandidature}/decision'/>" style="display:inline;">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <button type="submit" name="decision" value="admis" class="btn btn-primary">Admettre</button>
+                    <button type="submit" name="decision" value="refuse" class="btn">Refuser</button>
+                  </form>
                 </td>
               </tr>
             </c:forEach>

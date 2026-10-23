@@ -31,6 +31,7 @@ public class SecurityConfig {
                 .requestMatchers("/rh/**").hasRole("RH")
                 .requestMatchers("/finance/**").hasRole("FINANCE")
                 .requestMatchers("/dg/**").hasRole("DG")
+                .requestMatchers("/candidat/**").hasRole("CANDIDAT")
                 // tout le reste : être connecté suffit
                 .anyRequest().authenticated()
             )

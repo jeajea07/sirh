@@ -39,6 +39,15 @@ migrations/bloc4_teste.sql
 ./mvnw spring-boot:run
 ```
 
+Ou, avec le script fourni (build + WAR lancé hors des chemins avec espace + attente) :
+
+```bash
+./scripts/recette-locale.sh db-reset --yes   # (re)crée la base et applique les migrations
+./scripts/recette-locale.sh start           # démarre l'application
+./scripts/recette-locale.sh smoke           # contrôle HTTP des écrans principaux
+./scripts/recette-locale.sh stop            # arrête l'application
+```
+
 > ⚠️ **Chemin avec espace = erreur JSP.** Le WAR exécutable (`java -jar`) ne sait pas scanner
 > les jars imbriqués si le chemin du projet contient un espace (`gestion tovo`), ce qui provoque
 > `TLD JSTL introuvable` et une page 500. Lancer avec `spring-boot:run`, ou copier le WAR dans un

@@ -4,6 +4,7 @@
 -- employe, type_contrat, demande_besoin...).
 -- =====================================================================
 
+DROP TABLE IF EXISTS notification_recrutement CASCADE;
 DROP TABLE IF EXISTS historique_candidature CASCADE;
 DROP TABLE IF EXISTS cv_competence          CASCADE;
 DROP TABLE IF EXISTS candidature            CASCADE;
@@ -87,6 +88,8 @@ CREATE TABLE candidat (
     adresse       VARCHAR(255),
     date_creation TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX uq_candidat_email_insensible_casse ON candidat(LOWER(email));
 
 -- ---------------------------------------------------------------------
 -- CANDIDATURE (CV numérique + fichier du CV)
@@ -181,3 +184,40 @@ CREATE INDEX idx_hist_candidature ON historique_candidature(id_candidature, date
 -- pour notifier le RH d'une nouvelle candidature / d'un rappel.
 -- ---------------------------------------------------------------------
 -- ALTER TABLE notification ADD COLUMN id_candidature INT REFERENCES candidature(id_candidature);
+
+-- ---------------------------------------------------------------------
+-- NOTIFICATION dédiée au recrutement (ne modifie pas notification du bloc 1)
+-- ---------------------------------------------------------------------
+CREATE TABLE notification_recrutement (
+    id_notification_recrutement INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id_destinataire_employe INT REFERENCES employe(id_employe),
+    id_candidat INT REFERENCES candidat(id_candidat),
+    id_offre INT REFERENCES offre(id_offre),
+    id_candidature INT REFERENCES candidature(id_candidature),
+    type_notification VARCHAR(40) NOT NULL,
+    canal VARCHAR(10) NOT NULL CHECK (canal IN ('INTERNE','EMAIL')),
+    objet VARCHAR(200),
+    message TEXT NOT NULL,
+    statut_envoi VARCHAR(12) NOT NULL DEFAULT 'EN_ATTENTE'
+        CHECK (statut_envoi IN ('EN_ATTENTE','ENVOYE','ECHEC')),
+    erreur TEXT,
+    lu BOOLEAN NOT NULL DEFAULT FALSE,
+    date_creation TIMESTAMP NOT NULL DEFAULT NOW(),
+    date_envoi TIMESTAMP,
+    tentatives INT NOT NULL DEFAULT 0 CHECK (tentatives >= 0),
+    CHECK ((id_destinataire_employe IS NOT NULL) <> (id_candidat IS NOT NULL)),
+    CHECK ((canal = 'INTERNE' AND id_destinataire_employe IS NOT NULL)
+        OR (canal = 'EMAIL' AND id_candidat IS NOT NULL))
+);
+
+CREATE INDEX idx_notification_recrutement_destinataire
+    ON notification_recrutement(id_destinataire_employe, lu, date_creation DESC);
+CREATE INDEX idx_notification_recrutement_envoi
+    ON notification_recrutement(statut_envoi, tentatives, date_creation);
+CREATE UNIQUE INDEX uq_notification_recrutement_candidature_type
+    ON notification_recrutement(id_candidature, type_notification)
+    WHERE id_candidature IS NOT NULL;
+CREATE UNIQUE INDEX uq_notification_recrutement_rappel_jour
+    ON notification_recrutement(id_destinataire_employe, type_notification, (date_creation::date))
+    WHERE id_destinataire_employe IS NOT NULL AND id_candidature IS NULL
+      AND type_notification LIKE 'RAPPEL_RETARDS_%';

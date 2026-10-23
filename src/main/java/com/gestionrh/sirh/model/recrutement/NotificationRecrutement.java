@@ -59,6 +59,9 @@ public class NotificationRecrutement {
 
     private LocalDateTime dateEnvoi;
 
+    @Column(nullable = false)
+    private Integer tentatives = 0;
+
     public Integer getIdNotificationRecrutement() { return idNotificationRecrutement; }
     public void setIdNotificationRecrutement(Integer idNotificationRecrutement) { this.idNotificationRecrutement = idNotificationRecrutement; }
 
@@ -100,4 +103,7 @@ public class NotificationRecrutement {
 
     public LocalDateTime getDateEnvoi() { return dateEnvoi; }
     public void setDateEnvoi(LocalDateTime dateEnvoi) { this.dateEnvoi = dateEnvoi; }
+
+    public Integer getTentatives() { return tentatives; }
+    public void setTentatives(Integer tentatives) { this.tentatives = tentatives; }
 }

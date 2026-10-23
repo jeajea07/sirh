@@ -21,12 +21,14 @@
     </c:if>
     <c:if test="${pageContext.request.isUserInRole('RH')}">
       <p>Vous vérifiez les demandes de besoin en personnel. <a href="<c:url value='/rh/demandes'/>">Voir les demandes à vérifier</a></p>
+      <a class="btn btn-primary" href="<c:url value='/bloc3/selections'/>">Ouvrir Sélection et embauche</a>
     </c:if>
     <c:if test="${pageContext.request.isUserInRole('FINANCE')}">
       <p>Vous vérifiez le budget des demandes.</p>
     </c:if>
     <c:if test="${pageContext.request.isUserInRole('DG')}">
       <p>Vous prenez la décision finale sur les demandes.</p>
+      <a class="btn btn-primary" href="<c:url value='/bloc3/selections'/>">Ouvrir Sélection et embauche</a>
     </c:if>
   </div>
 

@@ -41,6 +41,12 @@ public class Bloc3Controller {
         this.employes = employes;
     }
 
+    /** Alias convivial pour l'adresse mentionnée dans le guide de test. */
+    @GetMapping({"/solutions", "/solutions/"})
+    public String solutions() {
+        return "redirect:/bloc3/selections";
+    }
+
     @ExceptionHandler(Bloc3Exception.class)
     public String erreur(Bloc3Exception e, HttpServletRequest request, RedirectAttributes flash) {
         flash.addFlashAttribute("erreur", e.getMessage());

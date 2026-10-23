@@ -35,8 +35,8 @@ FROM (VALUES
      DATE '2026-10-20', TRUE, 'VALIDEE', 103, DATE '2026-10-20'),
     (92002, 81001, 71002, NULL::NUMERIC, NULL::NUMERIC, NULL::NUMERIC,
      NULL::NUMERIC, NULL::NUMERIC, NULL::INT,
-     'INCOMPLET', 'Justificatif d’expérience manquant', 'EN_ATTENTE',
-     NULL::TEXT, 102, DATE '2026-10-20', FALSE, 'NON_REQUISE', NULL::INT, NULL::DATE)
+     'INCOMPLET', 'Justificatif d’expérience manquant', NULL::VARCHAR,
+     NULL::TEXT, NULL::INT, NULL::DATE, FALSE, 'NON_REQUISE', NULL::INT, NULL::DATE)
 ) AS exemple(id_candidature_b2, id_offre_b2, id_candidat_b2,
              score_test, score_entretien_rh, score_entretien_tech, score_entretien_dg,
              score_final, rang_classement, etat_dossier,
@@ -125,6 +125,25 @@ WHERE s.id_candidature_b2 = 92001
       WHERE h.type_element = 'RECRUTEMENT'
         AND h.id_element = r.id_recrutement
         AND h.action = 'TRANSFERT_BLOC4_REUSSI'
+  );
+
+INSERT INTO b3_historique
+    (type_element, id_element, action, auteur_id, commentaire, date_action)
+SELECT 'PROPOSITION', p.id_proposition, actions.action, actions.auteur_id,
+       actions.commentaire, actions.date_action
+FROM b3_proposition p
+JOIN b3_selection s ON s.id_selection = p.id_selection
+CROSS JOIN (VALUES
+    ('PROPOSITION_PREPAREE', 102, 'Version 1 préparée.', TIMESTAMP '2026-10-20 09:00:00'),
+    ('PROPOSITION_ENVOYEE', 102, 'Proposition envoyée au candidat.', TIMESTAMP '2026-10-20 10:00:00'),
+    ('REPONSE_CANDIDAT', 102, 'Acceptation enregistrée le 21 octobre 2026.', TIMESTAMP '2026-10-21 09:00:00')
+) AS actions(action, auteur_id, commentaire, date_action)
+WHERE s.id_candidature_b2 = 92001
+  AND NOT EXISTS (
+      SELECT 1 FROM b3_historique h
+      WHERE h.type_element = 'PROPOSITION'
+        AND h.id_element = p.id_proposition
+        AND h.action = actions.action
   );
 
 -- Requêtes de consultation avec les libellés des tables de référence.

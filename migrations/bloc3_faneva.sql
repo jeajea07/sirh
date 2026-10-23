@@ -3,6 +3,25 @@
 -- Ils n'ont pas de clé étrangère : les blocs peuvent utiliser des bases différentes.
 -- Exécuter les commandes dans l'ordre, après avoir sélectionné la base voulue.
 
+-- Réinitialisation des objets du Bloc 3 avant leur recréation.
+-- Cette étape supprime aussi les données présentes dans les tables ci-dessous.
+DROP VIEW IF EXISTS b3_v_suivi_recrutement;
+DROP VIEW IF EXISTS b3_v_dossiers_selection;
+
+DROP TABLE IF EXISTS b3_historique;
+DROP TABLE IF EXISTS b3_recrutement;
+DROP TABLE IF EXISTS b3_reponse_candidat;
+DROP TABLE IF EXISTS b3_proposition;
+DROP TABLE IF EXISTS b3_selection;
+DROP TABLE IF EXISTS b3_etat_transfert;
+DROP TABLE IF EXISTS b3_etat_recrutement;
+DROP TABLE IF EXISTS b3_type_contrat;
+DROP TABLE IF EXISTS b3_type_reponse;
+DROP TABLE IF EXISTS b3_etat_proposition;
+DROP TABLE IF EXISTS b3_etat_validation;
+DROP TABLE IF EXISTS b3_type_decision;
+DROP TABLE IF EXISTS b3_etat_dossier;
+
 -- Tables de référence : les tables métier enregistrent des identifiants,
 -- pas les libellés des états, des décisions ou des réponses.
 CREATE TABLE IF NOT EXISTS b3_etat_dossier (

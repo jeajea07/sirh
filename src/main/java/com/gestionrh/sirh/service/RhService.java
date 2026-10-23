@@ -10,6 +10,9 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionrh.sirh.dto.ControleSalaire;
+import com.gestionrh.sirh.dto.DemandeRhResume;
+import com.gestionrh.sirh.dto.HistoriqueRhLigne;
 import com.gestionrh.sirh.model.CritereRecrutementModel;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
 import com.gestionrh.sirh.model.DepartementModel;
@@ -27,9 +30,6 @@ import com.gestionrh.sirh.repository.GrilleSalarialeRepository;
 import com.gestionrh.sirh.repository.HistoriqueModificationRepository;
 import com.gestionrh.sirh.repository.NotificationRepository;
 import com.gestionrh.sirh.repository.ValidationEtapeRepository;
-import com.gestionrh.sirh.service.dto.ControleSalaire;
-import com.gestionrh.sirh.service.dto.DemandeRhResume;
-import com.gestionrh.sirh.service.dto.HistoriqueRhLigne;
 
 @Service
 public class RhService {

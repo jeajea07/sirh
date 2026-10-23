@@ -2,8 +2,8 @@ package com.gestionrh.sirh.service;
 
 import java.util.List;
 
+import com.gestionrh.sirh.dto.ControleSalaire;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
-import com.gestionrh.sirh.service.dto.ControleSalaire;
 
 public class VerificationRh {
 

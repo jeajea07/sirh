@@ -51,6 +51,16 @@ td .person { display: flex; align-items: center; gap: 10px; font-weight: 600; }
 @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } .span2 { grid-column: auto; } }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field label { font-weight: 600; font-size: .82rem; }
+.role-choice { min-width: 0; margin: 0; padding: 0; border: 0; }
+.role-choice legend { margin-bottom: 7px; font-size: .82rem; font-weight: 600; }
+.role-options { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.role-options label { display: inline-flex; align-items: center; gap: 5px; font-size: .76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.role-options input { appearance: none; display: grid; place-items: center; width: 16px; height: 16px; margin: 0; border: 2px solid #FFD400; border-radius: 50%; background: #fff; cursor: pointer; }
+.role-options input::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #FFD400; transform: scale(0); }
+.role-options input:checked::before { transform: scale(1); }
+.role-options input:focus, .role-options input:checked { border-color: #FFD400; box-shadow: none; }
+.role-options input:focus-visible { outline: 2px solid #FFD400; outline-offset: 2px; box-shadow: none; }
+.role-choice.error .role-options { color: var(--bad); }
 .field .hint { font-size: .78rem; color: var(--muted); }
 .password-toggle { position: relative; }
 .password-toggle input { padding-right: 44px !important; }

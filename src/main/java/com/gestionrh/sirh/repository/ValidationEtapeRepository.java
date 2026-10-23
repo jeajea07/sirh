@@ -13,4 +13,6 @@ public interface ValidationEtapeRepository extends JpaRepository<ValidationEtape
     List<ValidationEtapeModel> findByEtapeAndDecisionIsNullOrderByDateReceptionAsc(String etape);
 
     List<ValidationEtapeModel> findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(String etape, Integer idValidateur);
+
+    List<ValidationEtapeModel> findByEtapeAndDecisionIsNotNullOrderByDateDecisionDesc(String etape);
 }

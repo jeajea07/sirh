@@ -10,6 +10,9 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionrh.sirh.dto.ControleSalaire;
+import com.gestionrh.sirh.dto.DemandeRhResume;
+import com.gestionrh.sirh.dto.HistoriqueRhLigne;
 import com.gestionrh.sirh.model.CritereRecrutementModel;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
 import com.gestionrh.sirh.model.DepartementModel;
@@ -27,9 +30,6 @@ import com.gestionrh.sirh.repository.GrilleSalarialeRepository;
 import com.gestionrh.sirh.repository.HistoriqueModificationRepository;
 import com.gestionrh.sirh.repository.NotificationRepository;
 import com.gestionrh.sirh.repository.ValidationEtapeRepository;
-import com.gestionrh.sirh.service.dto.ControleSalaire;
-import com.gestionrh.sirh.service.dto.DemandeRhResume;
-import com.gestionrh.sirh.service.dto.HistoriqueRhLigne;
 
 @Service
 public class RhService {
@@ -83,11 +83,14 @@ public class RhService {
         return resultat;
     }
 
-    /** Les décisions prises par ce RH à l'étape RH (validées, renvoyées, rejetées), la plus récente d'abord. */
+    /** Les décisions prises à l'étape RH, la plus récente d'abord. {@code idRh} null = toutes (vue du DG). */
     @Transactional(readOnly = true)
     public List<HistoriqueRhLigne> historique(Integer idRh) {
         List<HistoriqueRhLigne> resultat = new ArrayList<>();
-        for (ValidationEtapeModel v : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_RH, idRh)) {
+        List<ValidationEtapeModel> decisions = idRh == null
+                ? validations.findByEtapeAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_RH)
+                : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_RH, idRh);
+        for (ValidationEtapeModel v : decisions) {
             DemandeBesoinModel d = demandes.findById(v.getIdDemandeBesoin()).orElse(null);
             if (d == null) {
                 continue;

@@ -4,17 +4,17 @@
 <t:layout titre="Historique" actif="historique-rh">
 
   <div class="page-head">
-    <div><h1>Historique des vérifications</h1><p>Les demandes que vous avez traitées : validées, renvoyées ou rejetées.</p></div>
+    <div><h1>Historique des vérifications</h1><p><c:choose><c:when test="${vueDg}">Les demandes traitées à cette étape : validées, renvoyées ou rejetées.</c:when><c:otherwise>Les demandes que vous avez traitées : validées, renvoyées ou rejetées.</c:otherwise></c:choose></p></div>
   </div>
 
   <c:choose>
     <c:when test="${empty lignes}">
-      <div class="card empty">Vous n'avez encore traité aucune demande.</div>
+      <div class="card empty"><c:choose><c:when test="${vueDg}">Aucune demande n'a encore été traitée à cette étape.</c:when><c:otherwise>Vous n'avez encore traité aucune demande.</c:otherwise></c:choose></div>
     </c:when>
     <c:otherwise>
       <div class="card card-flat">
         <div class="table-wrap"><table>
-          <thead><tr><th>N°</th><th>Poste</th><th>Département</th><th>Demandeur</th><th>Contrat</th><th>Salaire</th><th>Votre décision</th><th>Commentaire</th><th>Décidée le</th><th>Statut actuel</th></tr></thead>
+          <thead><tr><th>N°</th><th>Poste</th><th>Département</th><th>Demandeur</th><th>Contrat</th><th>Salaire</th><th><c:choose><c:when test="${vueDg}">Décision</c:when><c:otherwise>Votre décision</c:otherwise></c:choose></th><th>Commentaire</th><th>Décidée le</th><th>Statut actuel</th></tr></thead>
           <tbody>
             <c:forEach var="l" items="${lignes}">
               <tr>

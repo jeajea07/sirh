@@ -1,6 +1,6 @@
-package com.gestionrh.sirh.service.dto;
+package com.gestionrh.sirh.dto;
 
-public class DemandeRhResume {
+public class DemandeFinanceResume {
 
     private final Integer id;
     private final String numero;
@@ -8,21 +8,21 @@ public class DemandeRhResume {
     private final String departement;
     private final String demandeur;
     private final String contrat;
-    private final String urgence;
+    private final String motif;
     private final String dateReceptionFr;
-    private final ControleSalaire controleSalaire;
+    private final ControleBudget controleBudget;
 
-    public DemandeRhResume(Integer id, String numero, String poste, String departement, String demandeur,
-                           String contrat, String urgence, String dateReceptionFr, ControleSalaire controleSalaire) {
+    public DemandeFinanceResume(Integer id, String numero, String poste, String departement, String demandeur,
+                                String contrat, String motif, String dateReceptionFr, ControleBudget controleBudget) {
         this.id = id;
         this.numero = numero;
         this.poste = poste;
         this.departement = departement;
         this.demandeur = demandeur;
         this.contrat = contrat;
-        this.urgence = urgence;
+        this.motif = motif;
         this.dateReceptionFr = dateReceptionFr;
-        this.controleSalaire = controleSalaire;
+        this.controleBudget = controleBudget;
     }
 
     public Integer getId() { return id; }
@@ -31,7 +31,7 @@ public class DemandeRhResume {
     public String getDepartement() { return departement; }
     public String getDemandeur() { return demandeur; }
     public String getContrat() { return contrat; }
-    public String getUrgence() { return urgence; }
+    public String getMotif() { return motif; }
     public String getDateReceptionFr() { return dateReceptionFr; }
-    public ControleSalaire getControleSalaire() { return controleSalaire; }
+    public ControleBudget getControleBudget() { return controleBudget; }
 }

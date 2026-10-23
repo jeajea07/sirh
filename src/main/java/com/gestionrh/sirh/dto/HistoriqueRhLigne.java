@@ -1,4 +1,4 @@
-package com.gestionrh.sirh.service.dto;
+package com.gestionrh.sirh.dto;
 
 /** Une décision prise par le RH sur une demande (ligne de la page « Historique »). */
 public class HistoriqueRhLigne {

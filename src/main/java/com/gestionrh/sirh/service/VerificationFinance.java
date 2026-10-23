@@ -1,7 +1,7 @@
 package com.gestionrh.sirh.service;
 
+import com.gestionrh.sirh.dto.ControleBudget;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
-import com.gestionrh.sirh.service.dto.ControleBudget;
 
 public class VerificationFinance {
 

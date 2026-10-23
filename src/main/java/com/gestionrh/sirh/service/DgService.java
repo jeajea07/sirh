@@ -8,6 +8,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionrh.sirh.dto.DemandeDgResume;
+import com.gestionrh.sirh.dto.HistoriqueRhLigne;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
 import com.gestionrh.sirh.model.EmployeModel;
 import com.gestionrh.sirh.model.HistoriqueModificationModel;
@@ -18,8 +20,6 @@ import com.gestionrh.sirh.repository.EmployeRepository;
 import com.gestionrh.sirh.repository.HistoriqueModificationRepository;
 import com.gestionrh.sirh.repository.NotificationRepository;
 import com.gestionrh.sirh.repository.ValidationEtapeRepository;
-import com.gestionrh.sirh.service.dto.DemandeDgResume;
-import com.gestionrh.sirh.service.dto.HistoriqueRhLigne;
 
 /** Décision finale de la Direction générale. */
 @Service

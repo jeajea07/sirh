@@ -11,6 +11,10 @@ import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.gestionrh.sirh.dto.ControleBudget;
+import com.gestionrh.sirh.dto.ControleSalaire;
+import com.gestionrh.sirh.dto.DemandeFinanceResume;
+import com.gestionrh.sirh.dto.HistoriqueRhLigne;
 import com.gestionrh.sirh.model.BudgetDepartementModel;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
 import com.gestionrh.sirh.model.EmployeModel;
@@ -23,10 +27,6 @@ import com.gestionrh.sirh.repository.EmployeRepository;
 import com.gestionrh.sirh.repository.HistoriqueModificationRepository;
 import com.gestionrh.sirh.repository.NotificationRepository;
 import com.gestionrh.sirh.repository.ValidationEtapeRepository;
-import com.gestionrh.sirh.service.dto.ControleBudget;
-import com.gestionrh.sirh.service.dto.ControleSalaire;
-import com.gestionrh.sirh.service.dto.DemandeFinanceResume;
-import com.gestionrh.sirh.service.dto.HistoriqueRhLigne;
 
 /** Étape « Finance » : contrôle du coût annuel de la demande par rapport au budget du département. */
 @Service
@@ -80,11 +80,14 @@ public class FinanceService {
         return resultat;
     }
 
-    /** Les décisions prises par ce validateur à l'étape Finance, la plus récente d'abord. */
+    /** Les décisions prises à l'étape Finance, la plus récente d'abord. {@code idFinance} null = toutes (vue du DG). */
     @Transactional(readOnly = true)
     public List<HistoriqueRhLigne> historique(Integer idFinance) {
         List<HistoriqueRhLigne> resultat = new ArrayList<>();
-        for (ValidationEtapeModel v : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_FINANCE, idFinance)) {
+        List<ValidationEtapeModel> decisions = idFinance == null
+                ? validations.findByEtapeAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_FINANCE)
+                : validations.findByEtapeAndIdValidateurAndDecisionIsNotNullOrderByDateDecisionDesc(ETAPE_FINANCE, idFinance);
+        for (ValidationEtapeModel v : decisions) {
             DemandeBesoinModel d = demandes.findById(v.getIdDemandeBesoin()).orElse(null);
             if (d == null) {
                 continue;

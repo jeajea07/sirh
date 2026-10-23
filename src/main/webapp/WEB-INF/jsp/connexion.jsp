@@ -26,7 +26,7 @@
 
       <%-- messages venant du serveur (Spring Security) --%>
       <c:if test="${param.erreur != null}">
-        <div class="alert alert-bad">Identifiant ou mot de passe incorrect.</div>
+        <div id="erreur-connexion" class="alert alert-bad">Identifiant ou mot de passe incorrect.</div>
       </c:if>
       <c:if test="${param.deconnecte != null}">
         <div class="alert alert-ok">Vous êtes déconnecté.</div>
@@ -35,9 +35,18 @@
       <%-- messages venant de js/login.js (champs vides) --%>
       <div class="form-errors"></div>
 
+      <fieldset class="field role-choice">
+        <div class="role-options">
+          <label><input type="radio" name="roleChoisi" value="EMPLOYE" required checked> EMPLOYEE</label>
+          <label><input type="radio" name="roleChoisi" value="RH" required> RH</label>
+          <label><input type="radio" name="roleChoisi" value="FINANCE" required> FINANCE</label>
+          <label><input type="radio" name="roleChoisi" value="DG" required> DG</label>
+        </div>
+      </fieldset>
       <div class="field">
-        <label for="login">Email *</label>
-        <input type="email" id="login" name="login" required autofocus autocomplete="username">
+        <label for="login-email">Email *</label>
+        <input type="email" id="login-email" name="loginEmail" required autofocus autocomplete="username">
+        <input type="hidden" id="login" name="login">
         <span class="hint">Votre email professionnel.</span>
       </div>
       <div class="field">

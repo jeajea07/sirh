@@ -52,11 +52,31 @@
               <td><c:out value="${resultat.note}"/> / 3</td>
               <td><span class="badge ${resultat.admis ? 'badge-ok' : 'badge-warn'}"><c:out value="${resultat.statut}"/></span></td>
               <td class="right">
-                <form method="post" action="<c:url value='/rh/tests/${resultat.idCandidature}/decision'/>" class="row" style="justify-content:flex-end;gap:6px">
-                  <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-                  <button class="btn btn-sm btn-primary" type="submit" name="decision" value="admis">Admettre</button>
-                  <button class="btn btn-sm" type="submit" name="decision" value="refuse">Refuser</button>
-                </form>
+                <div class="row" style="justify-content:flex-end;gap:6px;flex-wrap:wrap">
+                  <form method="post" action="<c:url value='/rh/tests/${resultat.idCandidature}/correction'/>" class="row" style="gap:6px;align-items:center">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <input type="text" name="Q1" value="1" style="width:58px" aria-label="Note Q1">
+                    <input type="text" name="Q2" value="1" style="width:58px" aria-label="Note Q2">
+                    <input type="text" name="Q3" value="1" style="width:58px" aria-label="Note Q3">
+                    <input type="text" name="commentaire" value="Correction RH" style="width:120px" aria-label="Commentaire de correction">
+                    <button class="btn btn-sm btn-primary" type="submit">Corriger</button>
+                  </form>
+                  <form method="post" action="<c:url value='/rh/tests/${resultat.idCandidature}/decision'/>" class="row" style="gap:6px">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <button class="btn btn-sm btn-primary" type="submit" name="decision" value="admis">Admettre</button>
+                    <button class="btn btn-sm" type="submit" name="decision" value="refuse">Refuser</button>
+                  </form>
+                  <form method="post" action="<c:url value='/rh/tests/${resultat.idCandidature}/relance'/>" class="row">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <button class="btn btn-sm" type="submit">Relancer</button>
+                  </form>
+                  <form method="post" action="<c:url value='/rh/tests/${resultat.idCandidature}/absence'/>" class="row" style="gap:6px;align-items:center">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+                    <input type="text" name="motif" value="Absence" style="width:110px" aria-label="Motif d’absence">
+                    <button class="btn btn-sm" type="submit" name="exception" value="true">Exception</button>
+                    <button class="btn btn-sm" type="submit" name="exception" value="false">Absent</button>
+                  </form>
+                </div>
               </td>
             </tr>
           </c:forEach>

@@ -5,6 +5,9 @@
 --
 -- Les identifiants restent des INT pour rester coherents avec le Bloc 2A
 -- et avec b3_selection.id_candidature_b2 (INT).
+--
+-- IMPORTANT : ce script est idempotent et ne supprime pas les tables
+-- existantes pour ne pas casser les bases de recette et de test.
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -23,36 +26,51 @@ ALTER TABLE candidature ADD COLUMN IF NOT EXISTS note_finale NUMERIC(5,2)
 -- ---------------------------------------------------------------------
 -- Session de test technique : une par candidature
 -- ---------------------------------------------------------------------
-DROP TABLE IF EXISTS reponse_test_technique CASCADE;
-DROP TABLE IF EXISTS test_technique CASCADE;
-
-CREATE TABLE test_technique (
+CREATE TABLE IF NOT EXISTS test_technique (
     id_test_technique INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_candidature    INT NOT NULL UNIQUE,
     date_debut        TIMESTAMP NOT NULL DEFAULT NOW(),
     date_fin          TIMESTAMP,
     statut            VARCHAR(30) NOT NULL DEFAULT 'PROGRAMME'
-                      CHECK (statut IN ('PROGRAMME','EN_COURS','RELANCE','CORRIGE','ADMIS','REFUSE','ABSENT')),
+                      CHECK (statut IN ('PROGRAMME','EN_COURS','RELANCE','ATTENTE_CORRECTION','CORRIGE','ADMIS','REFUSE','ABSENT','EXCEPTION')),
     seuil_note        NUMERIC(5,2) NOT NULL DEFAULT 0,
     note_generale     NUMERIC(5,2) NOT NULL DEFAULT 0,
     relance           BOOLEAN NOT NULL DEFAULT FALSE,
+    absent            BOOLEAN NOT NULL DEFAULT FALSE,
+    correction_manuelle BOOLEAN NOT NULL DEFAULT FALSE,
+    motif_absence     TEXT,
+    motif_exception   TEXT,
+    duree_secondes    INTEGER,
     FOREIGN KEY (id_candidature) REFERENCES candidature(id_candidature) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_test_candidature ON test_technique(id_candidature);
+CREATE INDEX IF NOT EXISTS idx_test_candidature ON test_technique(id_candidature);
 
-CREATE TABLE reponse_test_technique (
-    id_reponse       INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS reponse_test_technique (
+    id_reponse        INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     id_test_technique INT NOT NULL,
-    question_ref     VARCHAR(100) NOT NULL,
-    type_question    VARCHAR(30) NOT NULL DEFAULT 'CHOIX'
-                     CHECK (type_question IN ('CHOIX','QCM','LIBRE')),
+    question_ref      VARCHAR(100) NOT NULL,
+    ordre_question    INTEGER,
+    type_question     VARCHAR(30) NOT NULL DEFAULT 'CHOIX'
+                      CHECK (type_question IN ('CHOIX','QCM','LIBRE')),
     reponse_textuelle TEXT,
-    note             NUMERIC(5,2) NOT NULL DEFAULT 0,
-    corrigee         BOOLEAN NOT NULL DEFAULT FALSE,
-    correct          BOOLEAN NOT NULL DEFAULT FALSE,
+    note              NUMERIC(5,2) NOT NULL DEFAULT 0,
+    corrigee          BOOLEAN NOT NULL DEFAULT FALSE,
+    correct           BOOLEAN NOT NULL DEFAULT FALSE,
+    correction_manuelle BOOLEAN NOT NULL DEFAULT FALSE,
+    commentaire_correcteur TEXT,
     FOREIGN KEY (id_test_technique) REFERENCES test_technique(id_test_technique) ON DELETE CASCADE,
     UNIQUE (id_test_technique, question_ref)
 );
 
-CREATE INDEX idx_reponse_test ON reponse_test_technique(id_test_technique);
+CREATE INDEX IF NOT EXISTS idx_reponse_test ON reponse_test_technique(id_test_technique);
+
+ALTER TABLE test_technique ADD COLUMN IF NOT EXISTS absent BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE test_technique ADD COLUMN IF NOT EXISTS correction_manuelle BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE test_technique ADD COLUMN IF NOT EXISTS motif_absence TEXT;
+ALTER TABLE test_technique ADD COLUMN IF NOT EXISTS motif_exception TEXT;
+ALTER TABLE test_technique ADD COLUMN IF NOT EXISTS duree_secondes INTEGER;
+
+ALTER TABLE reponse_test_technique ADD COLUMN IF NOT EXISTS ordre_question INTEGER;
+ALTER TABLE reponse_test_technique ADD COLUMN IF NOT EXISTS correction_manuelle BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE reponse_test_technique ADD COLUMN IF NOT EXISTS commentaire_correcteur TEXT;

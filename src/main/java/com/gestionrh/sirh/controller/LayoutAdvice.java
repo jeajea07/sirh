@@ -19,6 +19,7 @@ public class LayoutAdvice {
     private static final Map<String, String> LIBELLES = Map.of(
             "EMPLOYE", "Employé",
             "RESPONSABLE", "Responsable de département",
+            "TECHNICIEN", "Technicien",
             "RH", "Ressources humaines",
             "FINANCE", "Finance",
             "DG", "Direction générale");

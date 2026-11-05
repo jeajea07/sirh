@@ -3,6 +3,7 @@ package com.gestionrh.sirh.service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -87,6 +88,8 @@ public class Bloc2BService {
             test.setStatut(Bloc2BStatus.TEST_EN_COURS);
             test.setSeuilNote(seuil == null ? BigDecimal.ZERO : seuil);
             test.setDateDebut(LocalDateTime.now());
+            test.setDureeSecondes(1800);
+            test.setDateFin(test.getDateDebut().plusSeconds(test.getDureeSecondes()));
             return tests.save(test);
         });
     }
@@ -97,6 +100,13 @@ public class Bloc2BService {
         Candidature candidature = chargerCandidature(idCandidature);
         TestTechniqueModel test = tests.findByCandidature(candidature)
                 .orElseGet(() -> ouvrirTest(candidature, BigDecimal.ZERO));
+
+        if (test.estExpiree()) {
+            test.marquerAbsence("Temps du test écoulé");
+            test.setDateFin(LocalDateTime.now());
+            tests.save(test);
+            throw new IllegalStateException("Le temps imparti pour le test est écoulé.");
+        }
 
         reponses.deleteAll(reponses.findByTestTechniqueOrderByIdReponseAsc(test));
         BigDecimal note = BigDecimal.ZERO;
@@ -132,12 +142,121 @@ public class Bloc2BService {
     }
 
     @Transactional
-    public void relancerTestTechnique(Integer idTestTechnique) {
-        TestTechniqueModel test = tests.findById(idTestTechnique)
-                .orElseThrow(() -> new IllegalArgumentException("Test technique introuvable : " + idTestTechnique));
-        test.setStatut(Bloc2BStatus.TEST_RELANCE);
-        test.setRelance(true);
+    public ResultatTest corrigerTestTechnique(Integer idCandidature, Map<String, String> corrections, String commentaire) {
+        Candidature candidature = chargerCandidature(idCandidature);
+        TestTechniqueModel test = tests.findByCandidature(candidature)
+                .orElseThrow(() -> new IllegalArgumentException("Aucun test technique n’a été ouvert pour cette candidature."));
+
+        if (test.estExpiree()) {
+            test.marquerAbsence("Temps du test écoulé");
+            tests.save(test);
+            throw new IllegalStateException("Le test n’est plus corrigeable : la session est expirée.");
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+        List<ReponseTestTechniqueModel> reponsesTest = reponses.findByTestTechniqueOrderByIdReponseAsc(test);
+        for (ReponseTestTechniqueModel reponse : reponsesTest) {
+            String correction = corrections == null ? null : corrections.get(reponse.getQuestionRef());
+            if (correction == null || correction.isBlank()) {
+                continue;
+            }
+            BigDecimal note = normaliserNote(correction);
+            reponse.setNote(note);
+            reponse.setCorrect(note.compareTo(BigDecimal.ZERO) > 0);
+            reponse.setCorrigee(true);
+            reponse.setCorrectionManuelle(true);
+            reponse.setCommentaireCorrecteur(commentaire);
+            reponses.save(reponse);
+            total = total.add(note);
+        }
+
+        if (reponsesTest.isEmpty()) {
+            total = test.getNoteGenerale() == null ? BigDecimal.ZERO : test.getNoteGenerale();
+        }
+
+        BigDecimal seuil = test.getSeuilNote() == null ? BigDecimal.ZERO : test.getSeuilNote();
+        test.setNoteGenerale(total);
+        test.setCorrectionManuelle(true);
+        test.setStatut(Bloc2BStatus.TEST_CORRIGE);
+        test.setDateFin(LocalDateTime.now());
         tests.save(test);
+
+        candidature.setNoteFinale(total);
+        candidature.setStatut(CandidatureStatut.TEST_TECHNIQUE);
+        candidatures.save(candidature);
+
+        return new ResultatTest(total.compareTo(seuil) >= 0, total, seuil);
+    }
+
+    @Transactional
+    public void relancerTestTechnique(Integer idCandidature) {
+        Candidature candidature = chargerCandidature(idCandidature);
+        TestTechniqueModel test = tests.findByCandidature(candidature)
+                .orElseThrow(() -> new IllegalArgumentException("Aucun test technique pour la candidature " + idCandidature));
+        test.setRelance(true);
+        test.setStatut(Bloc2BStatus.TEST_RELANCE);
+        test.setDateDebut(LocalDateTime.now());
+        test.setDateFin(test.getDateDebut().plusSeconds(1800));
+        tests.save(test);
+    }
+
+    @Transactional
+    public void programmerEntretien(Integer idCandidature, String niveau) {
+        Candidature candidature = chargerCandidature(idCandidature);
+        candidature.setStatut(statutEntretien(niveau, candidature.getStatut(), true));
+        candidatures.save(candidature);
+    }
+
+    @Transactional
+    public void planifierEntretien(Integer idCandidature, String niveau) {
+        programmerEntretien(idCandidature, niveau);
+    }
+
+    @Transactional
+    public void validerEntretien(Integer idCandidature, String niveau, boolean admis) {
+        Candidature candidature = chargerCandidature(idCandidature);
+        candidature.setStatut(statutEntretien(niveau, candidature.getStatut(), admis));
+        candidatures.save(candidature);
+    }
+
+    @Transactional
+    public void confirmerFinale(Integer idCandidature, boolean admis) {
+        Candidature candidature = chargerCandidature(idCandidature);
+        CandidatureStatut statutAvant = candidature.getStatut();
+        if (statutAvant != CandidatureStatut.ENTRETIEN_DG && statutAvant != CandidatureStatut.CONFIRMATION_FINALE) {
+            throw new IllegalStateException("La confirmation finale ne peut être faite qu’après le niveau DG ou une confirmation déjà initiée.");
+        }
+        candidature.setStatut(admis ? CandidatureStatut.CONFIRMATION_FINALE : CandidatureStatut.NON_RETENUE);
+        candidatures.save(candidature);
+    }
+
+    @Transactional
+    public void noterEntretien(Integer idCandidature, String niveau, BigDecimal note, boolean admis) {
+        Candidature candidature = chargerCandidature(idCandidature);
+        candidature.setNoteFinale(note == null ? candidature.getNoteFinale() : note);
+        candidature.setStatut(statutEntretien(niveau, candidature.getStatut(), admis));
+        candidatures.save(candidature);
+    }
+
+    @Transactional
+    public void marquerAbsence(Integer idCandidature, String motif, boolean exception) {
+        Candidature candidature = chargerCandidature(idCandidature);
+        TestTechniqueModel test = tests.findByCandidature(candidature)
+                .orElseGet(() -> ouvrirTest(candidature, BigDecimal.ZERO));
+        String motifFinal = motif == null || motif.isBlank() ? (exception ? "Exception RH" : "Absence non justifiée") : motif;
+        test.setMotifAbsence(motifFinal);
+        if (exception) {
+            test.setMotifException(motifFinal);
+            test.setStatut(Bloc2BStatus.TEST_RELANCE);
+            test.setRelance(true);
+            test.setDateDebut(LocalDateTime.now());
+            test.setDateFin(test.getDateDebut().plusSeconds(1800));
+        } else {
+            test.marquerAbsence(motifFinal);
+            candidature.setStatut(CandidatureStatut.NON_RETENUE);
+        }
+        tests.save(test);
+        candidatures.save(candidature);
     }
 
     /** Decision RH : le candidat passe en confirmation finale ou est ecarte. */
@@ -146,6 +265,15 @@ public class Bloc2BService {
         Candidature candidature = chargerCandidature(idCandidature);
         TestTechniqueModel test = tests.findByCandidature(candidature).orElse(null);
         boolean retenu = admis;
+        if (test != null && test.isAbsent() && test.getMotifException() != null && !test.getMotifException().isBlank() && admis) {
+            test.setStatut(Bloc2BStatus.TEST_ADMIS);
+            test.setDateFin(LocalDateTime.now());
+            tests.save(test);
+            candidature.setNoteFinale(test.getNoteGenerale() == null ? BigDecimal.ZERO : test.getNoteGenerale());
+            candidature.setStatut(CandidatureStatut.CONFIRMATION_FINALE);
+            candidatures.save(candidature);
+            return;
+        }
         if (retenu && test != null) {
             BigDecimal seuil = test.getSeuilNote() == null ? BigDecimal.ZERO : test.getSeuilNote();
             BigDecimal note = test.getNoteGenerale() == null ? BigDecimal.ZERO : test.getNoteGenerale();
@@ -157,10 +285,61 @@ public class Bloc2BService {
         if (test != null) {
             test.setStatut(retenu ? Bloc2BStatus.TEST_ADMIS : Bloc2BStatus.TEST_REFUSE);
             tests.save(test);
-            candidature.setNoteFinale(test.getNoteGenerale());
+            candidature.setNoteFinale(test.getNoteGenerale() == null ? BigDecimal.ZERO : test.getNoteGenerale());
         }
         candidature.setStatut(retenu ? CandidatureStatut.CONFIRMATION_FINALE : CandidatureStatut.NON_RETENUE);
         candidatures.save(candidature);
+    }
+
+    private CandidatureStatut statutEntretien(String niveau, CandidatureStatut statutCourant, boolean admis) {
+        String niveauNet = niveau == null ? "" : niveau.trim().toUpperCase(Locale.ROOT);
+        if ("RH".equals(niveauNet)) {
+            if (statutCourant == CandidatureStatut.CONFIRMATION_FINALE || statutCourant == null) {
+                return admis ? CandidatureStatut.ENTRETIEN_RH : CandidatureStatut.NON_RETENUE;
+            }
+            if (statutCourant == CandidatureStatut.ENTRETIEN_RH) {
+                return admis ? CandidatureStatut.ENTRETIEN_TECHNICIEN : CandidatureStatut.NON_RETENUE;
+            }
+            return admis ? CandidatureStatut.ENTRETIEN_RH : CandidatureStatut.NON_RETENUE;
+        }
+        if ("TECHNICIEN".equals(niveauNet) || "TECHNIQUE".equals(niveauNet)) {
+            if (statutCourant == CandidatureStatut.ENTRETIEN_RH || statutCourant == CandidatureStatut.ENTRETIEN_TECHNICIEN) {
+                return admis ? CandidatureStatut.ENTRETIEN_DG : CandidatureStatut.NON_RETENUE;
+            }
+            if (statutCourant == CandidatureStatut.ENTRETIEN_DG) {
+                return admis ? CandidatureStatut.CONFIRMATION_FINALE : CandidatureStatut.NON_RETENUE;
+            }
+            return admis ? CandidatureStatut.ENTRETIEN_TECHNICIEN : CandidatureStatut.NON_RETENUE;
+        }
+        if ("DG".equals(niveauNet)) {
+            if (statutCourant == CandidatureStatut.ENTRETIEN_DG || statutCourant == CandidatureStatut.ENTRETIEN_TECHNICIEN) {
+                return admis ? CandidatureStatut.CONFIRMATION_FINALE : CandidatureStatut.NON_RETENUE;
+            }
+            return admis ? CandidatureStatut.ENTRETIEN_DG : CandidatureStatut.NON_RETENUE;
+        }
+        throw new IllegalArgumentException("Niveau d’entretien inconnu : " + niveau);
+    }
+
+    private BigDecimal normaliserNote(String valeur) {
+        if (valeur == null) {
+            return BigDecimal.ZERO;
+        }
+        String normalisee = valeur.trim();
+        if (normalisee.isBlank()) {
+            return BigDecimal.ZERO;
+        }
+        String minuscule = normalisee.toLowerCase(Locale.ROOT);
+        if ("oui".equals(minuscule) || "true".equals(minuscule) || "vrai".equals(minuscule) || "1".equals(minuscule)) {
+            return BigDecimal.ONE;
+        }
+        if ("non".equals(minuscule) || "false".equals(minuscule) || "faux".equals(minuscule) || "0".equals(minuscule)) {
+            return BigDecimal.ZERO;
+        }
+        try {
+            return new BigDecimal(normalisee);
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
     }
 
     private Candidature chargerCandidature(Integer idCandidature) {

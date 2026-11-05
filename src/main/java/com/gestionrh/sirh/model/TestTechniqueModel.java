@@ -2,10 +2,12 @@ package com.gestionrh.sirh.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.gestionrh.sirh.model.recrutement.Candidature;
+import com.gestionrh.sirh.service.Bloc2BStatus;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -43,7 +45,7 @@ public class TestTechniqueModel {
     private LocalDateTime dateFin;
 
     @Column(name = "statut")
-    private String statut = "PROGRAMME";
+    private String statut = Bloc2BStatus.TEST_PROGRAMME;
 
     @Column(name = "seuil_note")
     private BigDecimal seuilNote = BigDecimal.ZERO;
@@ -53,6 +55,21 @@ public class TestTechniqueModel {
 
     @Column(name = "relance")
     private boolean relance = false;
+
+    @Column(name = "absent")
+    private boolean absent = false;
+
+    @Column(name = "correction_manuelle")
+    private boolean correctionManuelle = false;
+
+    @Column(name = "motif_absence")
+    private String motifAbsence;
+
+    @Column(name = "motif_exception")
+    private String motifException;
+
+    @Column(name = "duree_secondes")
+    private Integer dureeSecondes = 1800;
 
     @OneToMany(mappedBy = "testTechnique", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReponseTestTechniqueModel> reponses = new ArrayList<>();
@@ -70,7 +87,7 @@ public class TestTechniqueModel {
     public void setDateFin(LocalDateTime dateFin) { this.dateFin = dateFin; }
 
     public String getStatut() { return statut; }
-    public void setStatut(String statut) { this.statut = statut; }
+    public void setStatut(String statut) { this.statut = statut == null ? Bloc2BStatus.TEST_PROGRAMME : statut; }
 
     public BigDecimal getSeuilNote() { return seuilNote; }
     public void setSeuilNote(BigDecimal seuilNote) { this.seuilNote = seuilNote; }
@@ -81,11 +98,65 @@ public class TestTechniqueModel {
     public boolean isRelance() { return relance; }
     public void setRelance(boolean relance) { this.relance = relance; }
 
+    public boolean isAbsent() { return absent || Bloc2BStatus.TEST_ABSENT.equalsIgnoreCase(statut); }
+    public void setAbsent(boolean absent) {
+        this.absent = absent;
+        if (absent) {
+            this.statut = Bloc2BStatus.TEST_ABSENT;
+        }
+    }
+
+    public boolean isCorrectionManuelle() { return correctionManuelle || Bloc2BStatus.TEST_CORRIGE.equalsIgnoreCase(statut); }
+    public void setCorrectionManuelle(boolean correctionManuelle) {
+        this.correctionManuelle = correctionManuelle;
+        if (correctionManuelle) {
+            this.statut = Bloc2BStatus.TEST_CORRIGE;
+        }
+    }
+
+    public String getMotifAbsence() { return motifAbsence; }
+    public void setMotifAbsence(String motifAbsence) { this.motifAbsence = motifAbsence; }
+
+    public String getMotifException() { return motifException; }
+    public void setMotifException(String motifException) { this.motifException = motifException; }
+
+    public Integer getDureeSecondes() { return dureeSecondes; }
+    public void setDureeSecondes(Integer dureeSecondes) { this.dureeSecondes = dureeSecondes; }
+
     public List<ReponseTestTechniqueModel> getReponses() { return reponses; }
     public void setReponses(List<ReponseTestTechniqueModel> reponses) { this.reponses = reponses; }
 
     public void addReponse(ReponseTestTechniqueModel reponse) {
         reponses.add(reponse);
         reponse.setTestTechnique(this);
+    }
+
+    public void marquerAbsence(String motif) {
+        this.absent = true;
+        this.motifAbsence = motif;
+        this.statut = Bloc2BStatus.TEST_ABSENT;
+    }
+
+    public void relancer() {
+        this.relance = true;
+        this.statut = Bloc2BStatus.TEST_RELANCE;
+    }
+
+    public void corrigerManuellement() {
+        this.correctionManuelle = true;
+        this.statut = Bloc2BStatus.TEST_CORRIGE;
+    }
+
+    public boolean estExpiree() {
+        LocalDateTime fin = dateFin != null ? dateFin : (dateDebut != null && dureeSecondes != null ? dateDebut.plusSeconds(dureeSecondes) : null);
+        return fin != null && LocalDateTime.now().isAfter(fin);
+    }
+
+    public long getTempsRestantSecondes() {
+        LocalDateTime fin = dateFin != null ? dateFin : (dateDebut != null && dureeSecondes != null ? dateDebut.plusSeconds(dureeSecondes) : null);
+        if (fin == null) {
+            return 0L;
+        }
+        return Math.max(0L, ChronoUnit.SECONDS.between(LocalDateTime.now(), fin));
     }
 }

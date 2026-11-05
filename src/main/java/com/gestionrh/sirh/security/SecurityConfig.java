@@ -28,6 +28,8 @@ public class SecurityConfig {
                 .requestMatchers("/connexion", "/error", "/css/**", "/js/**", "/logo*").permitAll()
                 // espaces réservés à un rôle (à adapter à vos URL)
                 .requestMatchers("/responsable/**").hasRole("RESPONSABLE")
+                .requestMatchers("/technicien/**").hasRole("TECHNICIEN")
+                .requestMatchers("/jury/**").hasAnyRole("RH", "RESPONSABLE", "TECHNICIEN", "DG")
                 .requestMatchers("/rh/**").hasRole("RH")
                 .requestMatchers("/finance/**").hasRole("FINANCE")
                 .requestMatchers("/dg/**").hasRole("DG")

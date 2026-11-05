@@ -20,6 +20,10 @@
         <span class="muted small">Statut : <c:out value="${empty test ? 'Non ouvert' : test.statut}"/></span>
       </div>
 
+      <c:if test="${sessionTerminee}">
+        <div class="alert alert-info" style="margin-bottom:16px">Le temps du test est écoulé. La session est fermée et les réponses ne peuvent plus être soumises.</div>
+      </c:if>
+
       <form method="post" action="<c:url value='/candidat/test/${candidature.idCandidature}'/>">
         <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
         <div class="stack">
@@ -28,17 +32,17 @@
               <label for="<c:out value='${question.reference}'/>"><c:out value="${question.label}"/></label>
               <c:choose>
                 <c:when test="${question.type == 'LIBRE'}">
-                  <textarea id="<c:out value='${question.reference}'/>" name="<c:out value='${question.reference}'/>" rows="4"><c:out value="${param[question.reference]}"/></textarea>
+                  <textarea id="<c:out value='${question.reference}'/>" name="<c:out value='${question.reference}'/>" rows="4" <c:if test="${sessionTerminee}">disabled="disabled"</c:if>><c:out value="${param[question.reference]}"/></textarea>
                 </c:when>
                 <c:otherwise>
-                  <input id="<c:out value='${question.reference}'/>" name="<c:out value='${question.reference}'/>" type="text" value="<c:out value='${param[question.reference]}'/>">
+                  <input id="<c:out value='${question.reference}'/>" name="<c:out value='${question.reference}'/>" type="text" value="<c:out value='${param[question.reference]}'/>" <c:if test="${sessionTerminee}">disabled="disabled"</c:if>>
                 </c:otherwise>
               </c:choose>
             </div>
           </c:forEach>
         </div>
         <div class="row wrap" style="margin-top:18px">
-          <button class="btn btn-primary" type="submit">Soumettre le test</button>
+          <button class="btn btn-primary" type="submit" <c:if test="${sessionTerminee}">disabled="disabled"</c:if>>Soumettre le test</button>
           <a class="btn" href="<c:url value='/candidat'/>">Retour à l’espace candidat</a>
         </div>
       </form>

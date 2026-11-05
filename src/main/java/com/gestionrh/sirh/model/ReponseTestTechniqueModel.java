@@ -29,6 +29,9 @@ public class ReponseTestTechniqueModel {
     @Column(name = "question_ref", nullable = false)
     private String questionRef;
 
+    @Column(name = "ordre_question")
+    private Integer ordreQuestion;
+
     @Column(name = "type_question", nullable = false)
     private String typeQuestion = "CHOIX";
 
@@ -44,6 +47,12 @@ public class ReponseTestTechniqueModel {
     @Column(name = "correct")
     private boolean correct = false;
 
+    @Column(name = "correction_manuelle")
+    private boolean correctionManuelle = false;
+
+    @Column(name = "commentaire_correcteur")
+    private String commentaireCorrecteur;
+
     public Integer getIdReponse() { return idReponse; }
     public void setIdReponse(Integer idReponse) { this.idReponse = idReponse; }
 
@@ -53,8 +62,11 @@ public class ReponseTestTechniqueModel {
     public String getQuestionRef() { return questionRef; }
     public void setQuestionRef(String questionRef) { this.questionRef = questionRef; }
 
+    public Integer getOrdreQuestion() { return ordreQuestion; }
+    public void setOrdreQuestion(Integer ordreQuestion) { this.ordreQuestion = ordreQuestion; }
+
     public String getTypeQuestion() { return typeQuestion; }
-    public void setTypeQuestion(String typeQuestion) { this.typeQuestion = typeQuestion; }
+    public void setTypeQuestion(String typeQuestion) { this.typeQuestion = typeQuestion == null || typeQuestion.isBlank() ? "CHOIX" : typeQuestion; }
 
     public String getReponseTextuelle() { return reponseTextuelle; }
     public void setReponseTextuelle(String reponseTextuelle) { this.reponseTextuelle = reponseTextuelle; }
@@ -67,4 +79,18 @@ public class ReponseTestTechniqueModel {
 
     public boolean isCorrect() { return correct; }
     public void setCorrect(boolean correct) { this.correct = correct; }
+
+    public boolean isCorrectionManuelle() { return correctionManuelle; }
+    public void setCorrectionManuelle(boolean correctionManuelle) { this.correctionManuelle = correctionManuelle; }
+
+    public String getCommentaireCorrecteur() { return commentaireCorrecteur; }
+    public void setCommentaireCorrecteur(String commentaireCorrecteur) { this.commentaireCorrecteur = commentaireCorrecteur; }
+
+    public void corrigerManuellement(BigDecimal note, boolean correct, String commentaire) {
+        this.note = note == null ? BigDecimal.ZERO : note;
+        this.correct = correct;
+        this.corrigee = true;
+        this.correctionManuelle = true;
+        this.commentaireCorrecteur = commentaire;
+    }
 }

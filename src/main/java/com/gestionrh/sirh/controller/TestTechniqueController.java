@@ -69,7 +69,17 @@ public class TestTechniqueController {
         model.addAttribute("questions", Bloc2BQuestion.QUESTIONS);
         model.addAttribute("reponses", test == null ? List.of() : reponses.findByTestTechniqueOrderByIdReponseAsc(test));
         model.addAttribute("noteSeuil", test != null && test.getSeuilNote() != null ? test.getSeuilNote() : BigDecimal.ZERO);
-        model.addAttribute("tempsRestant", test != null && test.getDateFin() != null ? "Test terminé" : "En cours");
+        if (test != null && test.estExpiree()) {
+            model.addAttribute("tempsRestant", "Test terminé");
+            model.addAttribute("sessionTerminee", true);
+        } else if (test != null && test.getDateFin() != null) {
+            long restant = Math.max(0L, test.getTempsRestantSecondes());
+            model.addAttribute("tempsRestant", restant + " s");
+            model.addAttribute("sessionTerminee", false);
+        } else {
+            model.addAttribute("tempsRestant", "En cours");
+            model.addAttribute("sessionTerminee", false);
+        }
         return "candidat/test-technique";
     }
 
@@ -151,6 +161,47 @@ public class TestTechniqueController {
         flash.addFlashAttribute("succes", admis
                 ? "Candidature transmise à la sélection (Bloc 3)."
                 : "Candidature écartée.");
+        return "redirect:/rh/tests";
+    }
+
+    @PostMapping("/rh/tests/{idCandidature}/correction")
+    @PreAuthorize("hasRole('RH')")
+    @Transactional
+    public String corriger(@PathVariable Integer idCandidature,
+                           @RequestParam Map<String, String> formulaire,
+                           RedirectAttributes flash) {
+        Map<String, String> corrections = new LinkedHashMap<>();
+        for (Bloc2BQuestion question : Bloc2BQuestion.QUESTIONS) {
+            String valeur = formulaire.get(question.reference());
+            if (valeur != null && !valeur.isBlank()) {
+                corrections.put(question.reference(), valeur);
+            }
+        }
+        var resultat = service.corrigerTestTechnique(idCandidature, corrections, formulaire.getOrDefault("commentaire", "Correction RH"));
+        flash.addFlashAttribute("succes", "Correction enregistrée : note " + resultat.note() + " / 3 (seuil " + resultat.seuil() + ").");
+        return "redirect:/rh/tests";
+    }
+
+    @PostMapping("/rh/tests/{idCandidature}/relance")
+    @PreAuthorize("hasRole('RH')")
+    @Transactional
+    public String relancer(@PathVariable Integer idCandidature, RedirectAttributes flash) {
+        service.relancerTestTechnique(idCandidature);
+        flash.addFlashAttribute("succes", "Le candidat a été relancé pour une nouvelle session de test.");
+        return "redirect:/rh/tests";
+    }
+
+    @PostMapping("/rh/tests/{idCandidature}/absence")
+    @PreAuthorize("hasRole('RH')")
+    @Transactional
+    public String marquerAbsence(@PathVariable Integer idCandidature,
+                                @RequestParam(required = false) String motif,
+                                @RequestParam(defaultValue = "false") boolean exception,
+                                RedirectAttributes flash) {
+        service.marquerAbsence(idCandidature, motif, exception);
+        flash.addFlashAttribute("succes", exception
+                ? "Exception enregistrée et relance de test planifiée."
+                : "Absence enregistrée et candidature traitée.");
         return "redirect:/rh/tests";
     }
 

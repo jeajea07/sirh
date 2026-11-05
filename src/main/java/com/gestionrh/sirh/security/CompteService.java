@@ -51,7 +51,7 @@ public class CompteService implements UserDetailsService {
         }
         String roleChoisi = saisie.substring(0, separateur).toUpperCase(Locale.ROOT);
         String id = saisie.substring(separateur + 1).trim();
-        if (!java.util.Set.of("EMPLOYE", "RH", "FINANCE", "DG").contains(roleChoisi)) {
+        if (!java.util.Set.of("EMPLOYE", "RH", "FINANCE", "DG", "RESPONSABLE", "TECHNICIEN").contains(roleChoisi)) {
             throw new UsernameNotFoundException("Rôle de connexion invalide.");
         }
 

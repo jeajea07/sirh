@@ -29,10 +29,12 @@ public class AffectationService {
     private final DepartementRepository departements;
     private final ContratRepository contrats;
     private final AuditService audit;
+    private final CarriereService carriere;
 
     public AffectationService(AffectationRepository affectations, EmployeRepository employes,
                               PosteRepository postes, DepartementRepository departements,
-                              ContratRepository contrats, AuditService audit) {
+                              ContratRepository contrats, AuditService audit, CarriereService carriere) {
+        this.carriere = carriere;
         this.affectations = affectations;
         this.employes = employes;
         this.postes = postes;
@@ -73,8 +75,14 @@ public class AffectationService {
 
     public List<String> verifier(AffectationForm f) {
         List<String> erreurs = new ArrayList<>();
-        if (f.getIdEmploye() == null || !employes.findById(f.getIdEmploye()).isPresent()) {
+        EmployeModel salarie = f.getIdEmploye() == null ? null : employes.findById(f.getIdEmploye()).orElse(null);
+        if (salarie == null) {
             erreurs.add("Le salarié est obligatoire.");
+        } else if ("SORTI".equals(salarie.getStatutAdministratif())) {
+            erreurs.add("Le salarié est sorti : son dossier est en lecture seule (RG-SP06).");
+        }
+        if (f.getIdResponsable() != null && f.getIdResponsable().equals(f.getIdEmploye())) {
+            erreurs.add("Un salarié ne peut pas être son propre responsable (RG-MV06).");
         }
         if (f.getIdPoste() == null || !postes.findById(f.getIdPoste()).isPresent()) {
             erreurs.add("Le poste est obligatoire.");
@@ -91,7 +99,17 @@ public class AffectationService {
         }
         if (f.getIdEmploye() != null && f.getDateDebut() != null) {
             LocalDate fin = f.getDateFin() == null ? LocalDate.of(9999, 12, 31) : f.getDateFin();
-            if (affectations.countChevauchements(f.getIdEmploye(), f.getId(), f.getDateDebut(), fin) > 0) {
+            Integer exclue = f.getId();
+            if (exclue == null) {
+                // Changement d'affectation : l'affectation active antérieure est clôturée automatiquement
+                // la veille de la nouvelle (voir enregistrer), elle ne compte donc pas comme chevauchement.
+                AffectationModel active = affectations
+                        .findFirstByIdEmployeAndStatutOrderByDateDebutDesc(f.getIdEmploye(), "ACTIVE").orElse(null);
+                if (active != null && active.getDateDebut() != null && f.getDateDebut().isAfter(active.getDateDebut())) {
+                    exclue = active.getId();
+                }
+            }
+            if (affectations.countChevauchements(f.getIdEmploye(), exclue, f.getDateDebut(), fin) > 0) {
                 erreurs.add("Une affectation active existe déjà sur cette période.");
             }
         }
@@ -111,16 +129,24 @@ public class AffectationService {
         DepartementModel departement = departements.findById(f.getIdDepartement())
                 .orElseThrow(() -> new Bloc4Exception("Département introuvable."));
 
-        affectations.findFirstByIdEmployeAndStatutOrderByDateDebutDesc(employe.getId(), "ACTIVE")
-                .ifPresent(ancienne -> {
-                    if (ancienne.getDateDebut() != null && !f.getDateDebut().isAfter(ancienne.getDateDebut())) {
-                        throw new Bloc4Exception("La nouvelle affectation doit commencer après l'affectation active.");
-                    }
-                    ancienne.setStatut("TERMINEE");
-                    ancienne.setDateFin(f.getDateDebut().minusDays(1));
-                    ancienne.setDateMaj(LocalDateTime.now());
-                    affectations.save(ancienne);
-                });
+        AffectationModel ancienne = affectations
+                .findFirstByIdEmployeAndStatutOrderByDateDebutDesc(employe.getId(), "ACTIVE").orElse(null);
+        // Valeurs lues avant la clôture, pour qualifier le mouvement (Bloc 5 §8.1).
+        String ancienneValeur = ancienne == null ? null : libelle(ancienne);
+        Integer ancienPoste = ancienne == null || ancienne.getPoste() == null ? null : ancienne.getPoste().getId();
+        Integer ancienDepartement = ancienne == null || ancienne.getDepartement() == null ? null : ancienne.getDepartement().getId();
+        Integer ancienResponsable = ancienne == null || ancienne.getResponsable() == null ? null : ancienne.getResponsable().getId();
+        if (ancienne != null) {
+            if (ancienne.getDateDebut() != null && !f.getDateDebut().isAfter(ancienne.getDateDebut())) {
+                throw new Bloc4Exception("La nouvelle affectation doit commencer après l'affectation active.");
+            }
+            ancienne.setStatut("TERMINEE");
+            ancienne.setDateFin(f.getDateDebut().minusDays(1));
+            ancienne.setDateMaj(LocalDateTime.now());
+            // Flush immédiat : l'index ux_affectation_active n'autorise qu'une affectation ACTIVE
+            // par salarié, la clôture doit donc être écrite avant l'insertion de la nouvelle.
+            affectations.saveAndFlush(ancienne);
+        }
 
         AffectationModel a = new AffectationModel();
         a.setEmploye(employe);
@@ -147,6 +173,21 @@ public class AffectationService {
         employes.save(employe);
         audit.tracer("AFFECTATION", a.getId(), "CREATION", null,
                 poste.getDesignation() + " / " + departement.getDesignation(), f.getMotif(), auteur);
+        String type;
+        if (ancienne == null) {
+            type = "AFFECTATION";
+        } else if (!departement.getId().equals(ancienDepartement)) {
+            type = "MUTATION";
+        } else if (!poste.getId().equals(ancienPoste)) {
+            type = "CHANGEMENT_POSTE";
+        } else if (!java.util.Objects.equals(f.getIdResponsable(), ancienResponsable)) {
+            type = "CHANGEMENT_RESPONSABLE";
+        } else {
+            type = "AFFECTATION";
+        }
+        carriere.tracer(employe, type, f.getDateDebut(),
+                libelle(a) + (f.getMotif() == null || f.getMotif().isBlank() ? "" : " — " + f.getMotif()),
+                ancienneValeur, libelle(a), "AFFECTATION", a.getId(), auteur);
         return a;
     }
 
@@ -172,6 +213,12 @@ public class AffectationService {
     public AffectationModel affectationActive(Integer idEmploye) {
         return affectations.findFirstByIdEmployeAndStatutOrderByDateDebutDesc(idEmploye, "ACTIVE")
                 .orElse(null);
+    }
+
+    private static String libelle(AffectationModel a) {
+        return (a.getPoste() == null ? "—" : a.getPoste().getDesignation()) + " / "
+                + (a.getDepartement() == null ? "—" : a.getDepartement().getDesignation())
+                + (a.getResponsable() == null ? "" : " (resp. " + a.getResponsable().getNomComplet() + ")");
     }
 
     private AffectationResume resume(AffectationModel a) {

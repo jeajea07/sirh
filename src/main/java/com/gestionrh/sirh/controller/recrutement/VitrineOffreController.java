@@ -5,7 +5,10 @@ import com.gestionrh.sirh.dto.recrutement.OffrePublique;
 import com.gestionrh.sirh.enums.recrutement.TypeCritere;
 import com.gestionrh.sirh.model.recrutement.CritereOffre;
 import com.gestionrh.sirh.model.recrutement.Offre;
+import com.gestionrh.sirh.repository.DepartementRepository;
+import com.gestionrh.sirh.repository.TypeContratRepository;
 import com.gestionrh.sirh.service.recrutement.OffreService;
+import com.gestionrh.sirh.util.Formats;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -23,9 +26,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class VitrineOffreController {
 
     private final OffreService offres;
+    private final DepartementRepository departements;
+    private final TypeContratRepository typesContrat;
 
-    public VitrineOffreController(OffreService offres) {
+    public VitrineOffreController(OffreService offres, DepartementRepository departements,
+            TypeContratRepository typesContrat) {
         this.offres = offres;
+        this.departements = departements;
+        this.typesContrat = typesContrat;
     }
 
     @GetMapping
@@ -45,6 +53,7 @@ public class VitrineOffreController {
     public String detail(@PathVariable Integer id, Model model) {
         Offre offre = offres.trouverOuverte(id);
         model.addAttribute("offre", projeter(offre));
+        model.addAttribute("salaireFr", offre.getSalairePropose() == null ? null : Formats.montant(offre.getSalairePropose()));
         model.addAttribute("titrePage", offre.getTitre());
         return "recrutement/vitrine/detail";
     }
@@ -58,6 +67,12 @@ public class VitrineOffreController {
             }
         }
         return new OffrePublique(offre.getIdOffre(), offre.getReference(), offre.getTitre(),
-                offre.getDescription(), offre.getMissions(), offre.getSalairePropose(), offre.getDateLimite(), criteres);
+                offre.getDescription(), offre.getMissions(), offre.getSalairePropose(), offre.getDateLimite(), criteres,
+                offre.getIdDepartement() == null ? null
+                        : departements.findById(offre.getIdDepartement()).map(d -> d.getDesignation()).orElse(null),
+                offre.getIdTypeContrat() == null ? null
+                        : typesContrat.findById(offre.getIdTypeContrat()).map(t -> t.getLibelle()).orElse(null),
+                offre.getDureeMois(), offre.getNombrePostes(),
+                offre.getDatePublication() == null ? null : offre.getDatePublication().toLocalDate());
     }
 }

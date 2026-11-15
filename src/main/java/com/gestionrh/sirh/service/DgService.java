@@ -5,11 +5,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.gestionrh.sirh.dto.DemandeDgResume;
 import com.gestionrh.sirh.dto.HistoriqueRhLigne;
+import com.gestionrh.sirh.event.recrutement.DemandeValideeEvent;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
 import com.gestionrh.sirh.model.EmployeModel;
 import com.gestionrh.sirh.model.HistoriqueModificationModel;
@@ -37,15 +39,17 @@ public class DgService {
     private final HistoriqueModificationRepository historiques;
     private final NotificationRepository notifications;
     private final EmployeRepository employes;
+    private final ApplicationEventPublisher events;
 
     public DgService(DemandeBesoinRepository demandes, ValidationEtapeRepository validations,
                      HistoriqueModificationRepository historiques, NotificationRepository notifications,
-                     EmployeRepository employes) {
+                     EmployeRepository employes, ApplicationEventPublisher events) {
         this.demandes = demandes;
         this.validations = validations;
         this.historiques = historiques;
         this.notifications = notifications;
         this.employes = employes;
+        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -143,7 +147,11 @@ public class DgService {
         h.setDateModification(maintenant);
         historiques.save(h);
 
-        if (ACTION_VALIDER.equals(action)) return "La demande " + d.getNumero() + " a été validée définitivement.";
+        if (ACTION_VALIDER.equals(action)) {
+            // Transmission au bloc 2 : offre créée en brouillon après la validation (voir OffreAutomatiqueListener).
+            events.publishEvent(new DemandeValideeEvent(d.getId(), dg.getId()));
+            return "La demande " + d.getNumero() + " a été validée définitivement et transmise au recrutement : l'offre est créée et attend la validation RH.";
+        }
         if (ACTION_RENVOYER.equals(action)) return "La demande " + d.getNumero() + " a été renvoyée au demandeur pour correction.";
         return "La demande " + d.getNumero() + " a été rejetée par la Direction générale.";
     }

@@ -7,6 +7,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -26,6 +28,8 @@ public class NotificationNouvelleOffreListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    // Transaction propre : après commit, la transaction d'origine est terminée (sinon « No active transaction »).
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifierRh(OffreCreeeEvent event) {
         Offre offre = offres.findById(event.idOffre()).orElse(null);
         if (offre == null) return;
@@ -36,8 +40,16 @@ public class NotificationNouvelleOffreListener {
         }
         for (Integer idRh : rh) {
             try {
-                notifications.notifierEmploye(idRh, "OFFRE_A_VALIDER", "Nouvelle offre à valider",
-                        ModeleNotificationRecrutement.nouvelleOffre(offre.getReference()), offre.getIdOffre(), null);
+                if (offre.getStatut() == com.gestionrh.sirh.enums.recrutement.OffreStatut.PUBLIEE) {
+                    notifications.notifierEmploye(idRh, "OFFRE_PUBLIEE", "Offre publiée automatiquement",
+                            "L'offre " + offre.getReference() + " (" + offre.getTitre() + ") a été créée depuis la demande "
+                                    + "validée par la DG et publiée sur le site vitrine jusqu'au " + offre.getDateLimite()
+                                    + ". Vous pouvez la modifier, la suspendre ou la clôturer.",
+                            offre.getIdOffre(), null);
+                } else {
+                    notifications.notifierEmploye(idRh, "OFFRE_A_VALIDER", "Nouvelle offre à valider",
+                            ModeleNotificationRecrutement.nouvelleOffre(offre.getReference()), offre.getIdOffre(), null);
+                }
             } catch (RuntimeException e) {
                 log.warn("Impossible de créer la notification RH pour l'offre {}", offre.getReference(), e);
             }

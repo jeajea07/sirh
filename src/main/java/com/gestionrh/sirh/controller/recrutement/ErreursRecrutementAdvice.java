@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
@@ -52,6 +54,15 @@ public class ErreursRecrutementAdvice {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public String contrainteDonnees(DataIntegrityViolationException e, Model model, HttpServletRequest request, HttpServletResponse response) {
         return afficher(model, request, response, HttpStatus.CONFLICT, "Cette opération entre en conflit avec des données déjà enregistrées.");
+    }
+
+    /**
+     * Les refus @PreAuthorize (AuthorizationDeniedException) et l'absence d'authentification doivent
+     * remonter à Spring Security (page /acces-refuse ou /connexion), et non devenir une erreur 500.
+     */
+    @ExceptionHandler({AccessDeniedException.class, AuthenticationException.class})
+    public void securite(RuntimeException e) {
+        throw e;
     }
 
     @ExceptionHandler(Exception.class)

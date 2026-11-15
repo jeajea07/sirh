@@ -96,6 +96,9 @@
           <c:if test="${detail.peutActiver}">
             <form method="post" action="<c:url value='/rh/contrats/${detail.contrat.id}/activer'/>"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn btn-ok btn-block" type="submit">Activer le contrat</button></form>
           </c:if>
+          <c:if test="${detail.contrat.statutWorkflow == 'SIGNE' and not detail.peutActiver}">
+            <p class="muted">Contrat signé : il entrera automatiquement en vigueur à sa date d'effet (<c:out value="${detail.contrat.dateDebutFr}"/>).</p>
+          </c:if>
           <c:if test="${detail.peutCreerAvenant}"><a class="btn btn-block" href="<c:url value='/rh/contrats/${detail.contrat.id}/avenant'/>">Créer un avenant</a></c:if>
           <c:if test="${detail.peutRenouveler}"><a class="btn btn-block" href="<c:url value='/rh/contrats/${detail.contrat.id}/renouveler'/>">Renouveler</a></c:if>
           <c:if test="${detail.peutTerminer}">

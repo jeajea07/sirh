@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  recette-locale.sh — commandes utiles du parcours SIRH (Bloc 1 → Bloc 4)
+#  recette-locale.sh — commandes utiles du parcours SIRH (Bloc 1 → Bloc 7)
 #
 #  Référence : readme/userflow-test.md
+#  Migrations : déléguées à scripts/migrations.sh (ordre : migrations/ordre-migrations.txt).
+#               Pour mettre à jour une base EXISTANTE sans perdre ses données :
+#                 ./scripts/migrations.sh apply
 #
 #  Usage :
 #    ./scripts/recette-locale.sh help
@@ -33,28 +36,9 @@ APP_PID_FILE="${APP_PID_FILE:-/tmp/opencode/sirh-run.pid}"
 
 WAR="target/sirh-0.0.1-SNAPSHOT.war"
 
-# Ordre canonique des migrations de la branche integration/bloc1-4.
-# Complet : schéma + données de test (offres, candidats, contrats, onboarding...)
-MIGRATIONS=(
-  migrations/bloc1.sql
-  migrations/bloc1_teste.sql        # SEED : comptes (RH, DG, FINANCE, EMPLOYE)
-  migrations/b2a_recrutement.sql
-  migrations/b2a_donnees_test.sql   # SEED : offres, demandes, candidats
-  migrations/bloc2_test_technique.sql
-  migrations/bloc3_faneva.sql
-  migrations/bloc3_test.sql         # SEED Bloc 3
-  migrations/bloc4.sql
-  migrations/bloc4_teste.sql         # SEED Bloc 4 (contrat, employé, onboarding)
-)
-# Schéma + comptes uniquement (sans données de test : pas d'offres, pas de candidats, pas de contrat)
-SCHEMA_WITH_ACCOUNTS_ONLY=(
-  migrations/bloc1.sql
-  migrations/bloc1_teste.sql
-  migrations/b2a_recrutement.sql
-  migrations/bloc2_test_technique.sql
-  migrations/bloc3_faneva.sql
-  migrations/bloc4.sql
-)
+# L'ordre des migrations n'est plus dupliqué ici : source unique migrations/ordre-migrations.txt,
+# appliquée et suivie par scripts/migrations.sh (table schema_migration).
+MIGRATIONS_SH="$PROJECT_DIR/scripts/migrations.sh"
 
 ASSUME_YES=0
 
@@ -75,9 +59,11 @@ Diagnostic :
   login-curl <role> <email> <mdp>
                        Teste une connexion et affiche le cookie de session
 
-Base de données :
+Base de données (via scripts/migrations.sh) :
   db-create            Crée la base si elle n'existe pas
-  db-init              Applique toutes les migrations dans l'ordre
+  db-status            État des migrations (appliquées, détectées, en attente)
+  db-init              Applique SEULEMENT les migrations manquantes (avec données de test),
+                       sans rien effacer — utilisable sur une base existante
   db-reset             Supprime, recrée puis applique toutes les migrations (avec données de test)
   db-reset-empty       Même chose mais sans données de test : schéma + comptes uniquement (pas d'offres, pas de candidats, pas de contrats)
   db-shell             Ouvre psql sur la base
@@ -222,55 +208,36 @@ db_create_cmd() {
   echo "Base $DB_NAME créée."
 }
 
-apply_migrations() {
-  local fichier
-  if [[ "${1:-}" == "empty" ]]; then
-    for fichier in "${SCHEMA_WITH_ACCOUNTS_ONLY[@]}"; do
-      [[ -f "$fichier" ]] || { echo "Migration absente : $fichier" >&2; return 1; }
-      echo "--- $fichier"
-      psql_db -q -f "$fichier"
-    done
-  else
-    for fichier in "${MIGRATIONS[@]}"; do
-      [[ -f "$fichier" ]] || { echo "Migration absente : $fichier" >&2; return 1; }
-      echo "--- $fichier"
-      psql_db -q -f "$fichier"
-    done
-  fi
+db_status_cmd() {
+  DB_NAME="$DB_NAME" DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" DB_USER="$DB_USER" DB_PASSWORD="$DB_PASSWORD" \
+    "$MIGRATIONS_SH" status
 }
 
+# Ancien comportement corrigé : rejouer bloc1.sql / b2a_recrutement.sql / bloc3_faneva.sql / bloc4.sql
+# (DROP TABLE … CASCADE) sur une base existante effaçait toutes les données. migrations.sh n'applique
+# que ce qui manque et reconnaît une base créée avant le suivi.
 db_init_cmd() {
-  need pg_isready || return 1
-  pg_isready -h "$DB_HOST" -p "$DB_PORT" >/dev/null 2>&1 || {
-    echo "PostgreSQL ne répond pas sur $DB_HOST:$DB_PORT." >&2
-    return 1
-  }
-  db_exists || db_create_cmd
-  apply_migrations
-  echo "Migrations appliquées sur $DB_NAME."
+  DB_NAME="$DB_NAME" DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" DB_USER="$DB_USER" DB_PASSWORD="$DB_PASSWORD" \
+    "$MIGRATIONS_SH" apply --avec-donnees-test
 }
 
 db_reset_cmd() {
-  need pg_isready || return 1
   confirm "Supprimer et recréer la base $DB_NAME ?" || {
     echo "Annulé."
     return 0
   }
-  dropdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" --if-exists "$DB_NAME"
-  createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$DB_NAME"
-  apply_migrations
+  DB_NAME="$DB_NAME" DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" DB_USER="$DB_USER" DB_PASSWORD="$DB_PASSWORD" \
+    "$MIGRATIONS_SH" reset --yes
   echo "Base $DB_NAME réinitialisée."
 }
 
 db_reset_empty_cmd() {
-  need pg_isready || return 1
   confirm "Supprimer et recréer la base $DB_NAME (sans données de test, comptes uniquement) ?" || {
     echo "Annulé."
     return 0
   }
-  dropdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" --if-exists "$DB_NAME"
-  createdb -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$DB_NAME"
-  apply_migrations "empty"
+  DB_NAME="$DB_NAME" DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" DB_USER="$DB_USER" DB_PASSWORD="$DB_PASSWORD" \
+    "$MIGRATIONS_SH" reset --yes --sans-donnees-test
   echo "Base $DB_NAME réinitialisée (schéma + comptes uniquement, sans candidats/offres/contrats)."
 }
 
@@ -300,6 +267,13 @@ db_counts_cmd() {
     union all select 'contrat', count(*) from contrat
     union all select 'employe', count(*) from employe
     union all select 'onboarding', count(*) from onboarding
+    union all select 'historique_salaire (B5)', count(*) from historique_salaire
+    union all select 'evenement_carriere (B5)', count(*) from evenement_carriere
+    union all select 'planning (B6)', count(*) from planning
+    union all select 'pointage (B6)', count(*) from pointage
+    union all select 'anomalie_pointage (B6)', count(*) from anomalie_pointage
+    union all select 'demande_conge (B7)', count(*) from demande_conge
+    union all select 'absence (B7)', count(*) from absence
     order by 1;"
 }
 
@@ -439,7 +413,9 @@ smoke_cmd() {
     /rh/tests /bloc3/selections
     /rh/contrats /rh/contrats/echeances /rh/salaries /rh/affectations
     /rh/onboardings /rh/onboardings/modeles /rh/documents /rh/formalites
-    /mes-taches
+    /mes-taches /mon-dossier
+    /rh/temps /rh/temps/releve /rh/temps/periodes /rh/temps/parametres /planning
+    /rh/conges /pointage /conges
   )
   local echecs=0 url code
   for url in "${ecrans[@]}"; do
@@ -480,6 +456,7 @@ case "$COMMAND" in
   login-curl)     login_curl_cmd "$@" ;;
   db-create)      db_create_cmd ;;
   db-init)        db_init_cmd ;;
+  db-status|migrations) db_status_cmd ;;
   db-reset)       db_reset_cmd ;;
   db-reset-empty) db_reset_empty_cmd ;;
   db-shell)       db_shell_cmd ;;

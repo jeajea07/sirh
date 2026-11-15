@@ -25,6 +25,10 @@ public interface ContratRepository extends JpaRepository<ContratModel, Integer> 
 
     Page<ContratModel> findByStatutWorkflow(String statut, Pageable pageable);
 
+    /** Contrats signés dont la date d'effet est atteinte : candidats à l'activation automatique. */
+    @Query("select c from ContratModel c where c.statutWorkflow = 'SIGNE' and c.dateDebut is not null and c.dateDebut <= :jour")
+    List<ContratModel> signesActivables(@Param("jour") LocalDate jour);
+
     Page<ContratModel> findByTypeOperation(String typeOperation, Pageable pageable);
 
     @Override

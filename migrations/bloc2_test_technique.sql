@@ -74,3 +74,9 @@ ALTER TABLE test_technique ADD COLUMN IF NOT EXISTS duree_secondes INTEGER;
 ALTER TABLE reponse_test_technique ADD COLUMN IF NOT EXISTS ordre_question INTEGER;
 ALTER TABLE reponse_test_technique ADD COLUMN IF NOT EXISTS correction_manuelle BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE reponse_test_technique ADD COLUMN IF NOT EXISTS commentaire_correcteur TEXT;
+
+-- Mise à niveau des bases créées avec une version antérieure de ce script :
+-- CREATE TABLE IF NOT EXISTS ne met pas à jour la contrainte des statuts.
+ALTER TABLE test_technique DROP CONSTRAINT IF EXISTS test_technique_statut_check;
+ALTER TABLE test_technique ADD CONSTRAINT test_technique_statut_check
+    CHECK (statut IN ('PROGRAMME','EN_COURS','RELANCE','ATTENTE_CORRECTION','CORRIGE','ADMIS','REFUSE','ABSENT','EXCEPTION'));

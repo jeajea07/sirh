@@ -17,8 +17,14 @@
       <div class="field"><label for="lieuNaissance">Lieu de naissance</label><input id="lieuNaissance" type="text" name="lieuNaissance" value="<c:out value='${form.lieuNaissance}'/>"></div>
       <div class="field"><label for="situationFamiliale">Situation familiale</label><select id="situationFamiliale" name="situationFamiliale"><option value="">Non renseignée</option><option value="CELIBATAIRE" ${form.situationFamiliale == 'CELIBATAIRE' ? 'selected' : ''}>Célibataire</option><option value="MARIE" ${form.situationFamiliale == 'MARIE' ? 'selected' : ''}>Marié(e)</option><option value="DIVORCE" ${form.situationFamiliale == 'DIVORCE' ? 'selected' : ''}>Divorcé(e)</option><option value="VEUF" ${form.situationFamiliale == 'VEUF' ? 'selected' : ''}>Veuf(ve)</option></select></div>
       <div class="field"><label for="nombreEnfants">Nombre d'enfants</label><input id="nombreEnfants" type="number" min="0" name="nombreEnfants" value="${form.nombreEnfants}"></div>
+      <div class="field"><label for="sexe">Sexe</label><select id="sexe" name="sexe"><option value="">Non renseigné</option><option value="M" ${form.sexe == 'M' ? 'selected' : ''}>Masculin</option><option value="F" ${form.sexe == 'F' ? 'selected' : ''}>Féminin</option></select></div>
+      <div class="field"><label for="nationalite">Nationalité</label><input id="nationalite" type="text" name="nationalite" value="<c:out value='${form.nationalite}'/>" placeholder="Malagasy"></div>
       <div class="field"><label for="dateEmbauche">Date d'embauche</label><input id="dateEmbauche" type="date" name="dateEmbauche" value="${form.dateEmbauche}"></div>
       <div class="field span2"><label for="adresse">Adresse</label><textarea id="adresse" name="adresse"><c:out value="${form.adresse}"/></textarea></div>
+    </div></div>
+    <div class="form-section"><h3>Contact d'urgence</h3><div class="form-grid">
+      <div class="field"><label for="contactUrgenceNom">Nom et lien</label><input id="contactUrgenceNom" type="text" name="contactUrgenceNom" value="<c:out value='${form.contactUrgenceNom}'/>" placeholder="Ex. Rasoa (conjointe)"></div>
+      <div class="field"><label for="contactUrgenceTelephone">Téléphone</label><input id="contactUrgenceTelephone" type="tel" name="contactUrgenceTelephone" value="<c:out value='${form.contactUrgenceTelephone}'/>"></div>
     </div></div>
     <div class="form-section"><h3>Protection sociale et bancaire</h3><div class="form-grid">
       <div class="field"><label for="numeroCnaps">N° CNaPS</label><input id="numeroCnaps" type="text" name="numeroCnaps" value="<c:out value='${form.numeroCnaps}'/>"></div>

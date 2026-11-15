@@ -14,7 +14,7 @@ import com.gestionrh.sirh.model.DocumentModel;
 
 public interface DocumentRepository extends JpaRepository<DocumentModel, Integer> {
 
-    @EntityGraph(attributePaths = {"employe", "contrat", "onboardingTache"})
+    @EntityGraph(attributePaths = {"employe", "contrat", "onboardingTache", "typeAdministratif"})
     @Query("select d from DocumentModel d where d.employe.id = :id order by d.dateDepot desc")
     List<DocumentModel> findByIdEmployeOrderByDateDepotDesc(@Param("id") Integer id);
 
@@ -37,4 +37,15 @@ public interface DocumentRepository extends JpaRepository<DocumentModel, Integer
     Page<DocumentModel> findAll(Pageable pageable);
 
     long countByStatutValidationIn(Collection<String> statuts);
+
+    /** Bloc 5 — pièces vérifiées dont la validité doit être surveillée chaque jour (RG-DO05). */
+    @EntityGraph(attributePaths = {"employe", "typeAdministratif"})
+    @Query("select d from DocumentModel d where d.dateExpiration is not null "
+            + "and d.statutValidation in ('VERIFIE', 'A_RENOUVELER')")
+    List<DocumentModel> documentsASurveiller();
+
+    /** Bloc 5 — versions encore actives d'une pièce (hors versions remplacées), de la plus récente à la plus ancienne. */
+    @Query("select d from DocumentModel d where d.employe.id = :idEmploye "
+            + "and d.typeAdministratif.id = :idType and d.statutValidation <> 'REMPLACE' order by d.dateDepot desc")
+    List<DocumentModel> versionsActives(@Param("idEmploye") Integer idEmploye, @Param("idType") Integer idType);
 }

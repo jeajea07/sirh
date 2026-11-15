@@ -9,8 +9,17 @@
     <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
     <c:if test="${not empty form.idOnboardingTache}"><input type="hidden" name="idOnboardingTache" value="${form.idOnboardingTache}"></c:if>
     <div class="form-grid">
+      <div class="field span2"><label for="idTypeAdministratif">Pièce du dossier salarié</label>
+        <select id="idTypeAdministratif" name="idTypeAdministratif">
+          <option value="">Aucune (document libre)</option>
+          <c:forEach var="p" items="${typesPieces}"><option value="${p.id}" ${form.idTypeAdministratif == p.id ? 'selected' : ''}><c:out value="${p.libelle}"/><c:if test="${p.obligatoire}"> — obligatoire</c:if><c:if test="${p.expirationRequise}"> — avec date de validité</c:if></option></c:forEach>
+        </select>
+        <span class="hint">Si une pièce est choisie, son type, sa confidentialité et sa durée de validité viennent du paramétrage (Bloc 5) ; le titre est facultatif.</span>
+      </div>
+      <div class="field"><label for="dateEmission">Date d'émission</label><input id="dateEmission" type="date" name="dateEmission" value="${form.dateEmission}"></div>
+      <div class="field"><label for="dateExpiration">Date d'expiration</label><input id="dateExpiration" type="date" name="dateExpiration" value="${form.dateExpiration}"><span class="hint">Calculée depuis la date d'émission si la pièce a une durée de validité fixe.</span></div>
       <div class="field"><label for="typeDocument">Type de document *</label>
-        <select id="typeDocument" name="typeDocument" required>
+        <select id="typeDocument" name="typeDocument">
           <option value="">Choisir…</option>
           <option value="CONTRAT" ${form.typeDocument == 'CONTRAT' ? 'selected' : ''}>Contrat</option>
           <option value="ADMINISTRATIF" ${form.typeDocument == 'ADMINISTRATIF' ? 'selected' : ''}>Administratif</option>
@@ -30,7 +39,7 @@
           <option value="SECRET" ${form.niveauConfidentialite == 'SECRET' ? 'selected' : ''}>Secret</option>
         </select>
       </div>
-      <div class="field span2"><label for="titre">Titre *</label><input id="titre" type="text" name="titre" value="<c:out value='${form.titre}'/>" required></div>
+      <div class="field span2"><label for="titre">Titre *</label><input id="titre" type="text" name="titre" value="<c:out value='${form.titre}'/>"></div>
       <div class="field"><label for="idEmploye">Salarié *</label>
         <select id="idEmploye" name="idEmploye" required>
           <option value="">Choisir…</option>

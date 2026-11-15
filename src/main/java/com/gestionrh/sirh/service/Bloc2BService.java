@@ -62,6 +62,13 @@ public class Bloc2BService {
             throw new IllegalStateException("La candidature n'a pas de candidat associé.");
         }
 
+        // Seuls les candidats dont le dossier est validé sont convoqués au test (le statut n'est pas modifié).
+        if (candidature.getStatut() != CandidatureStatut.DOSSIER_VALIDE
+                && candidature.getStatut() != CandidatureStatut.TEST_TECHNIQUE) {
+            throw new IllegalStateException("L'accès au test n'est possible que pour un dossier validé (statut actuel : "
+                    + candidature.getStatut() + ").");
+        }
+
         String identifiant = "CAND" + candidat.getIdCandidat();
         String motDePasseTemporaire = UUID.randomUUID().toString().substring(0, 8);
 
@@ -72,26 +79,45 @@ public class Bloc2BService {
         candidats.save(candidat);
 
         candidature.setAccesCree(true);
-        candidature.setStatut(CandidatureStatut.DOSSIER_VALIDE);
         candidatures.save(candidature);
 
         ouvrirTest(candidature, seuil);
         return new AccesCandidat(identifiant, motDePasseTemporaire);
     }
 
-    /** Ouvre la session de test si elle n'existe pas encore. */
+    /** Durée de la séance unique de test (en secondes). */
+    public static final int DUREE_TEST_SECONDES = 1800;
+
+    /**
+     * Ouvre la session de test si elle n'existe pas encore. Elle reste « programmée » (sans chronomètre) :
+     * l'accès est créé dès la validation du dossier, le candidat passe le test plus tard dans l'entreprise.
+     */
     @Transactional
     public TestTechniqueModel ouvrirTest(Candidature candidature, BigDecimal seuil) {
         return tests.findByCandidature(candidature).orElseGet(() -> {
             TestTechniqueModel test = new TestTechniqueModel();
             test.setCandidature(candidature);
-            test.setStatut(Bloc2BStatus.TEST_EN_COURS);
+            test.setStatut(Bloc2BStatus.TEST_PROGRAMME);
             test.setSeuilNote(seuil == null ? BigDecimal.ZERO : seuil);
             test.setDateDebut(LocalDateTime.now());
-            test.setDureeSecondes(1800);
-            test.setDateFin(test.getDateDebut().plusSeconds(test.getDureeSecondes()));
+            test.setDureeSecondes(null);
+            test.setDateFin(null);
             return tests.save(test);
         });
+    }
+
+    /** Démarre le chronomètre de la séance unique quand le candidat ouvre son test pour la première fois. */
+    @Transactional
+    public void demarrerTestSiProgramme(Integer idCandidature) {
+        tests.findByCandidature_IdCandidature(idCandidature)
+                .filter(t -> Bloc2BStatus.TEST_PROGRAMME.equals(t.getStatut()))
+                .ifPresent(t -> {
+                    t.setStatut(Bloc2BStatus.TEST_EN_COURS);
+                    t.setDateDebut(LocalDateTime.now());
+                    t.setDureeSecondes(DUREE_TEST_SECONDES);
+                    t.setDateFin(t.getDateDebut().plusSeconds(DUREE_TEST_SECONDES));
+                    tests.save(t);
+                });
     }
 
     /** Enregistre les reponses du candidat, corrige le test et met a jour la candidature. */
@@ -108,7 +134,17 @@ public class Bloc2BService {
             throw new IllegalStateException("Le temps imparti pour le test est écoulé.");
         }
 
-        reponses.deleteAll(reponses.findByTestTechniqueOrderByIdReponseAsc(test));
+        // Séance unique : un test déjà soumis/corrigé ne peut pas être resoumis (double clic, retour arrière…).
+        String statut = test.getStatut();
+        if (Bloc2BStatus.TEST_ADMIS.equals(statut) || Bloc2BStatus.TEST_REFUSE.equals(statut)
+                || Bloc2BStatus.TEST_CORRIGE.equals(statut) || Bloc2BStatus.TEST_ABSENT.equals(statut)) {
+            throw new IllegalStateException("Ce test a déjà été soumis : il ne peut être passé qu'une seule fois.");
+        }
+
+        // Hibernate exécute les INSERT (id IDENTITY) avant les DELETE en attente : sans flush, les anciennes
+        // réponses sont encore en base et la contrainte unique (id_test_technique, question_ref) saute.
+        reponses.deleteAllInBatch(reponses.findByTestTechniqueOrderByIdReponseAsc(test));
+        reponses.flush();
         BigDecimal note = BigDecimal.ZERO;
         for (Bloc2BQuestion question : Bloc2BQuestion.QUESTIONS) {
             String valeur = reponsesCandidat == null ? null : reponsesCandidat.get(question.reference());
@@ -259,10 +295,15 @@ public class Bloc2BService {
         candidatures.save(candidature);
     }
 
-    /** Decision RH : le candidat passe en confirmation finale ou est ecarte. */
+    /** Decision RH apres le test : le candidat passe a l'entretien 1 (RH) ou est ecarte. */
     @Transactional
     public void decider(Integer idCandidature, boolean admis) {
         Candidature candidature = chargerCandidature(idCandidature);
+        if (candidature.getStatut() != CandidatureStatut.DOSSIER_VALIDE
+                && candidature.getStatut() != CandidatureStatut.TEST_TECHNIQUE) {
+            throw new IllegalStateException("La décision du test a déjà été prise (statut actuel : "
+                    + candidature.getStatut() + ").");
+        }
         TestTechniqueModel test = tests.findByCandidature(candidature).orElse(null);
         boolean retenu = admis;
         if (test != null && test.isAbsent() && test.getMotifException() != null && !test.getMotifException().isBlank() && admis) {
@@ -270,7 +311,7 @@ public class Bloc2BService {
             test.setDateFin(LocalDateTime.now());
             tests.save(test);
             candidature.setNoteFinale(test.getNoteGenerale() == null ? BigDecimal.ZERO : test.getNoteGenerale());
-            candidature.setStatut(CandidatureStatut.CONFIRMATION_FINALE);
+            candidature.setStatut(CandidatureStatut.ENTRETIEN_RH);
             candidatures.save(candidature);
             return;
         }
@@ -287,7 +328,9 @@ public class Bloc2BService {
             tests.save(test);
             candidature.setNoteFinale(test.getNoteGenerale() == null ? BigDecimal.ZERO : test.getNoteGenerale());
         }
-        candidature.setStatut(retenu ? CandidatureStatut.CONFIRMATION_FINALE : CandidatureStatut.NON_RETENUE);
+        // Bloc 2 : un admis au test est convoqué à l'entretien 1 (RH) ; il n'atteint la confirmation
+        // finale qu'après les trois niveaux d'entretien.
+        candidature.setStatut(retenu ? CandidatureStatut.ENTRETIEN_RH : CandidatureStatut.NON_RETENUE);
         candidatures.save(candidature);
     }
 

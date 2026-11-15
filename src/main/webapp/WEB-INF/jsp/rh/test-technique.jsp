@@ -15,19 +15,20 @@
 
   <c:if test="${not empty dossiersValides}">
     <section class="card stack" style="margin-bottom:16px">
-      <div class="card-head"><h2>Dossiers validés sans compte de test</h2></div>
+      <div class="card-head"><h2>Dossiers validés — accès au test</h2><span class="muted small">L'accès est créé et envoyé automatiquement à la validation du dossier.</span></div>
       <div class="table-wrap"><table>
-        <thead><tr><th>Numéro</th><th>Candidat</th><th class="right">Ouvrir le test</th></tr></thead>
+        <thead><tr><th>Numéro</th><th>Candidat</th><th>Accès</th><th class="right">Accès au test</th></tr></thead>
         <tbody>
           <c:forEach var="dossier" items="${dossiersValides}">
             <tr>
               <td><b><c:out value="${dossier.numero}"/></b></td>
               <td><c:out value="${dossier.candidat.prenom}"/> <c:out value="${dossier.candidat.nom}"/></td>
+              <td><c:choose><c:when test="${dossier.accesCree}"><span class="badge badge-ok">Envoyé — <c:out value="${dossier.candidat.identifiant}"/></span></c:when><c:otherwise><span class="badge badge-warn">À créer</span></c:otherwise></c:choose></td>
               <td class="right">
                 <form method="post" action="<c:url value='/rh/tests/${dossier.idCandidature}/acces'/>" class="row" style="justify-content:flex-end;gap:8px">
                   <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                   <input type="number" name="seuil" min="0" max="3" step="0.5" value="2" style="width:80px" aria-label="Seuil de validation">
-                  <button class="btn btn-sm btn-primary" type="submit">Créer l’accès</button>
+                  <button class="btn btn-sm ${dossier.accesCree ? '' : 'btn-primary'}" type="submit">${dossier.accesCree ? 'Renvoyer un nouvel accès' : 'Créer l’accès'}</button>
                 </form>
               </td>
             </tr>

@@ -6,6 +6,8 @@ import com.gestionrh.sirh.repository.recrutement.CandidatureRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -25,6 +27,8 @@ public class NotificationCandidatureRecueListener {
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    // Transaction propre : après commit, la transaction d'origine est terminée (sinon « No active transaction »).
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void notifier(CandidatureRecueEvent event) {
         Candidature candidature = candidatures.findWithCandidatAndOffreByIdCandidature(event.idCandidature()).orElse(null);
         if (candidature == null) return;

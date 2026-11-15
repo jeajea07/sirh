@@ -32,7 +32,8 @@ class Bloc4DocumentServiceTest {
         when(documents.save(any(DocumentModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
         return new DocumentService(documents, mock(EmployeRepository.class),
                 mock(ContratRepository.class), mock(OnboardingTacheRepository.class),
-                mock(UtilisateurRepository.class), mock(AuditService.class), dossier.toString());
+                mock(UtilisateurRepository.class), mock(AuditService.class),
+                mock(com.gestionrh.sirh.repository.TypeDocumentAdministratifRepository.class), dossier.toString());
     }
 
     @Test

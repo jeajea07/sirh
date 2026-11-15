@@ -20,25 +20,31 @@
         <h2>Dossiers prêts à recevoir</h2>
         <span class="badge badge-ok"><c:out value="${fn:length(dossiersPrets)}"/> candidat(s) validé(s) par le Bloc 2</span>
       </div>
-      <p class="muted">Ces candidatures ont passé le test technique et sont en confirmation finale. Le rang de classement reste à préciser.</p>
+      <p class="muted">Ces candidatures ont réussi le test technique et les trois entretiens (RH, Technicien, DG). La note finale (moyenne du test et des entretiens, sur 5) et le rang par offre sont calculés automatiquement.</p>
       <div class="table-wrap"><table>
-        <thead><tr><th>Candidat</th><th>Offre</th><th>Test 2B (/3)</th><th>Reçu le</th><th class="right">Recevoir le dossier</th></tr></thead>
+        <thead><tr><th>Candidat</th><th>Offre</th><th>Notes du Bloc 2</th><th class="right">Recevoir le dossier</th></tr></thead>
         <tbody>
           <c:forEach var="d" items="${dossiersPrets}">
             <tr>
               <td><b><c:out value="${d.candidat.prenom}"/> <c:out value="${d.candidat.nom}"/></b><br><span class="muted small">Candidature #<c:out value="${d.idCandidature}"/> · Candidat #<c:out value="${d.candidat.idCandidat}"/></span></td>
               <td><c:out value="${empty d.offre ? 'Candidature spontanée' : d.offre.titre}"/><br><span class="muted small"><c:out value="${empty d.offre ? '—' : d.offre.reference}"/></span></td>
-              <td><b><c:out value="${empty d.noteFinale ? '—' : d.noteFinale}"/></b> / 3</td>
-              <td><c:out value="${empty d.dateValidation ? '—' : d.dateValidation}"/></td>
+              <c:set var="r" value="${resumesPrets[d.idCandidature]}"/>
+              <td class="small">Test <b><c:out value="${empty r.test20 ? '—' : r.test20}"/></b>/20 ·
+                RH <b><c:out value="${empty r.entretienRh ? '—' : r.entretienRh}"/></b> ·
+                Tech. <b><c:out value="${empty r.entretienTech ? '—' : r.entretienTech}"/></b> ·
+                DG <b><c:out value="${empty r.entretienDg ? '—' : r.entretienDg}"/></b> (/5)</td>
               <td class="right">
                 <form method="post" action="<c:url value='/bloc3/selections/reception'/>" class="row wrap" style="justify-content:flex-end;align-items:flex-end;gap:8px">
                   <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
                   <input type="hidden" name="idCandidatureB2" value="${d.idCandidature}">
                   <input type="hidden" name="idOffreB2" value="${empty d.offre ? 0 : d.offre.idOffre}">
                   <input type="hidden" name="idCandidatB2" value="${d.candidat.idCandidat}">
-                  <div class="field" style="margin:0"><label for="scoreTest-${d.idCandidature}">Test (/20)</label><input id="scoreTest-${d.idCandidature}" type="number" min="0" max="20" step="0.01" name="scoreTest" value="${d.noteFinale * 20 / 3}"></div>
-                  <div class="field" style="margin:0"><label for="scoreFinal-${d.idCandidature}">Note finale (/5)</label><input id="scoreFinal-${d.idCandidature}" type="number" min="0" max="5" step="0.01" name="scoreFinal" required></div>
-                  <div class="field" style="margin:0"><label for="rang-${d.idCandidature}">Rang</label><input id="rang-${d.idCandidature}" type="number" min="1" name="rangClassement" style="width:70px"></div>
+                  <input type="hidden" name="scoreTest" value="${r.test20}">
+                  <input type="hidden" name="scoreEntretienRh" value="${r.entretienRh}">
+                  <input type="hidden" name="scoreEntretienTech" value="${r.entretienTech}">
+                  <input type="hidden" name="scoreEntretienDg" value="${r.entretienDg}">
+                  <div class="field" style="margin:0"><label for="scoreFinal-${d.idCandidature}">Note finale (/5)</label><input id="scoreFinal-${d.idCandidature}" type="number" min="0" max="5" step="0.01" name="scoreFinal" value="${r.noteFinale}" required></div>
+                  <div class="field" style="margin:0"><label for="rang-${d.idCandidature}">Rang</label><input id="rang-${d.idCandidature}" type="number" min="1" name="rangClassement" value="${r.rang}" style="width:70px"></div>
                   <button class="btn btn-sm btn-primary" type="submit">Recevoir</button>
                 </form>
               </td>

@@ -1,5 +1,6 @@
 package com.gestionrh.sirh.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.gestionrh.sirh.util.Formats;
@@ -82,6 +83,34 @@ public class DocumentModel {
     @Column(name = "commentaire")
     private String commentaire;
 
+    // --- Bloc 5 : validité des documents administratifs ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_type_document_administratif")
+    private TypeDocumentAdministratifModel typeAdministratif;
+
+    @Column(name = "date_emission")
+    private LocalDate dateEmission;
+
+    @Column(name = "date_expiration")
+    private LocalDate dateExpiration;
+
+    @Column(name = "id_document_remplace")
+    private Integer idDocumentRemplace;
+
+    public TypeDocumentAdministratifModel getTypeAdministratif() { return typeAdministratif; }
+    public void setTypeAdministratif(TypeDocumentAdministratifModel typeAdministratif) { this.typeAdministratif = typeAdministratif; }
+
+    public LocalDate getDateEmission() { return dateEmission; }
+    public void setDateEmission(LocalDate dateEmission) { this.dateEmission = dateEmission; }
+
+    public LocalDate getDateExpiration() { return dateExpiration; }
+    public void setDateExpiration(LocalDate dateExpiration) { this.dateExpiration = dateExpiration; }
+
+    public Integer getIdDocumentRemplace() { return idDocumentRemplace; }
+    public void setIdDocumentRemplace(Integer idDocumentRemplace) { this.idDocumentRemplace = idDocumentRemplace; }
+
+    public String getDateExpirationFr() { return dateExpiration == null ? "—" : Formats.date(dateExpiration); }
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -160,14 +189,18 @@ public class DocumentModel {
             case "RECU" -> "Reçu";
             case "VERIFIE" -> "Vérifié";
             case "REJETE" -> "Rejeté";
+            case "A_RENOUVELER" -> "À renouveler";
+            case "EXPIRE" -> "Expiré";
+            case "REMPLACE" -> "Remplacé";
             default -> "Attendu";
         };
     }
 
     public String getStatutBadge() {
         if ("VERIFIE".equals(statutValidation)) return "badge-ok";
-        if ("REJETE".equals(statutValidation)) return "badge-bad";
-        if ("ATTENDU".equals(statutValidation)) return "badge-warn";
+        if ("REJETE".equals(statutValidation) || "EXPIRE".equals(statutValidation)) return "badge-bad";
+        if ("ATTENDU".equals(statutValidation) || "A_RENOUVELER".equals(statutValidation)) return "badge-warn";
+        if ("REMPLACE".equals(statutValidation)) return "";
         return "badge-info";
     }
 

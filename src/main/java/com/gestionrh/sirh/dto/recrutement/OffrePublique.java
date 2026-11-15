@@ -6,4 +6,5 @@ import java.util.List;
 
 /** Projection en liste blanche des seules informations publiables d'une offre. */
 public record OffrePublique(Integer id, String reference, String titre, String description, String missions,
-        BigDecimal salaire, LocalDate dateLimite, List<CritereOffrePublic> criteres) { }
+        BigDecimal salaire, LocalDate dateLimite, List<CritereOffrePublic> criteres,
+        String departement, String typeContrat, Integer dureeMois, Integer nombrePostes, LocalDate datePublication) { }

@@ -60,13 +60,18 @@ public class ContratService {
     private final AuditService audit;
     private final NotificationService notifications;
     private final OnboardingService onboarding;
+    private final CarriereService carriere;
+    private final SalaireService salaires;
 
     public ContratService(ContratRepository contrats, EmployeRepository employes,
                           TypeContratRepository types, AffectationRepository affectations,
                           SignatureContratRepository signatures, ValidationB4Repository validations,
                           PosteRepository postes, DepartementRepository departements,
                           DocumentService documents, AuditService audit,
-                          NotificationService notifications, OnboardingService onboarding) {
+                          NotificationService notifications, OnboardingService onboarding,
+                          CarriereService carriere, SalaireService salaires) {
+        this.carriere = carriere;
+        this.salaires = salaires;
         this.contrats = contrats;
         this.employes = employes;
         this.types = types;
@@ -390,6 +395,19 @@ public class ContratService {
         c.setDateMaj(LocalDateTime.now());
         contrats.save(c);
 
+        // Bloc 5 : événement de carrière, historique de salaire et statut administratif.
+        EmployeModel salarie = c.getEmploye();
+        String typeEvenement = typeEvenementContrat(c);
+        carriere.tracer(salarie, typeEvenement, c.getDateDebut(),
+                "Contrat " + c.getReference() + " (" + (c.getTypeContrat() == null ? "—" : c.getTypeContrat().getLibelle()) + ")",
+                c.getContratPrecedent() == null ? null : c.getContratPrecedent().getReference(),
+                c.getFonction() + " — " + c.getSalaireFr(), "CONTRAT", c.getId(), auteur);
+        salaires.enregistrerDepuisContrat(c, auteur);
+        if ("EN_INTEGRATION".equals(salarie.getStatutAdministratif())) {
+            salarie.setStatutAdministratif("ACTIF");
+            employes.save(salarie);
+        }
+
         if (c.getContratPrecedent() != null) {
             ContratModel precedent = c.getContratPrecedent();
             if ("RENOUVELLEMENT".equals(c.getTypeOperation())) {
@@ -569,6 +587,18 @@ public class ContratService {
             employe.setPoste(poste);
             employe.setDepartement(departement);
             employe.setActif(true);
+            employe.setStatutAdministratif("EN_INTEGRATION");
+            employe = employes.save(employe);
+        } else if ("SORTI".equals(employe.getStatutAdministratif()) || !employe.isActif()) {
+            // Bloc 5 RG-SP06 : réembauche — on rouvre le dossier existant (même matricule), sans doublon.
+            employe.setActif(true);
+            employe.setStatutAdministratif("EN_INTEGRATION");
+            employe.setDateSortie(null);
+            employe.setMotifSortie(null);
+            employe.setDateNotificationSortie(null);
+            employe.setSortieEnregistreeParId(null);
+            employe.setPoste(poste);
+            employe.setDepartement(departement);
             employe = employes.save(employe);
         }
 
@@ -617,6 +647,20 @@ public class ContratService {
         audit.tracer("CONTRAT", c.getId(), "CREATION_DEPUIS_EMBAUCHE", null, c.getReference(),
                 "Recrutement " + dto.getIdRecrutement(), auteur);
         return c;
+    }
+
+    /** Bloc 5 §11 : type d'événement de carrière produit par l'entrée en vigueur d'un contrat. */
+    private String typeEvenementContrat(ContratModel c) {
+        if ("AVENANT".equals(c.getTypeOperation())) return "AVENANT";
+        if ("RENOUVELLEMENT".equals(c.getTypeOperation())) return "RENOUVELLEMENT_CONTRAT";
+        Integer idEmploye = c.getEmploye().getId();
+        if (carriere.aDejaQuitteLEntreprise(idEmploye)) return "REEMBAUCHE";
+        boolean contratsAnterieurs = contrats.findByIdEmployeAndStatutWorkflowInOrderByDateDebutDesc(
+                idEmploye, List.of("EN_VIGUEUR", "TERMINE")).stream().anyMatch(p -> !p.getId().equals(c.getId()));
+        if (contratsAnterieurs && c.getTypeContrat() != null && "CDI".equalsIgnoreCase(c.getTypeContrat().getCode())) {
+            return "TRANSFORMATION_CDI";
+        }
+        return "EMBAUCHE";
     }
 
     private boolean onboardingExistePas(Integer idContrat) {

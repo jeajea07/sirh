@@ -24,6 +24,62 @@ public class SalarieDetail {
     private List<DeclarationResume> formalites;
     private List<EvenementAuditVue> historique;
 
+    // --- Bloc 5 : dossier administratif ---
+    private String sexe;
+    private String nationalite;
+    private String contactUrgenceNom;
+    private String contactUrgenceTelephone;
+    private LocalDate dateNotificationSortie;
+    private LocalDate dateSortie;
+    private String motifSortie;
+    private ContratResume contratEnVigueur;
+    private com.gestionrh.sirh.model.HistoriqueSalaireModel salaireEnVigueur;
+    private List<com.gestionrh.sirh.model.HistoriqueSalaireModel> historiqueSalaires = List.of();
+    private List<com.gestionrh.sirh.model.EvenementCarriereModel> carriere = List.of();
+    private List<PieceDossierVue> pieces = List.of();
+    private List<String> alertes = List.of();
+    private String anciennete;
+    /** RG-SA07 / RG-AC03 : salaire et RIB visibles uniquement par les profils habilités. */
+    private boolean donneesSensiblesVisibles;
+
+    public String getSexe() { return sexe; }
+    public void setSexe(String sexe) { this.sexe = sexe; }
+    public String getSexeLibelle() { return "M".equals(sexe) ? "Masculin" : "F".equals(sexe) ? "Féminin" : "—"; }
+    public String getNationalite() { return nationalite; }
+    public void setNationalite(String nationalite) { this.nationalite = nationalite; }
+    public String getContactUrgenceNom() { return contactUrgenceNom; }
+    public void setContactUrgenceNom(String contactUrgenceNom) { this.contactUrgenceNom = contactUrgenceNom; }
+    public String getContactUrgenceTelephone() { return contactUrgenceTelephone; }
+    public void setContactUrgenceTelephone(String contactUrgenceTelephone) { this.contactUrgenceTelephone = contactUrgenceTelephone; }
+    public LocalDate getDateNotificationSortie() { return dateNotificationSortie; }
+    public void setDateNotificationSortie(LocalDate dateNotificationSortie) { this.dateNotificationSortie = dateNotificationSortie; }
+    public String getDateNotificationSortieFr() { return Formats.date(dateNotificationSortie); }
+    public LocalDate getDateSortie() { return dateSortie; }
+    public void setDateSortie(LocalDate dateSortie) { this.dateSortie = dateSortie; }
+    public String getDateSortieFr() { return Formats.date(dateSortie); }
+    public String getMotifSortie() { return motifSortie; }
+    public void setMotifSortie(String motifSortie) { this.motifSortie = motifSortie; }
+    public ContratResume getContratEnVigueur() { return contratEnVigueur; }
+    public void setContratEnVigueur(ContratResume contratEnVigueur) { this.contratEnVigueur = contratEnVigueur; }
+    public com.gestionrh.sirh.model.HistoriqueSalaireModel getSalaireEnVigueur() { return salaireEnVigueur; }
+    public void setSalaireEnVigueur(com.gestionrh.sirh.model.HistoriqueSalaireModel salaireEnVigueur) { this.salaireEnVigueur = salaireEnVigueur; }
+    public List<com.gestionrh.sirh.model.HistoriqueSalaireModel> getHistoriqueSalaires() { return historiqueSalaires; }
+    public void setHistoriqueSalaires(List<com.gestionrh.sirh.model.HistoriqueSalaireModel> historiqueSalaires) { this.historiqueSalaires = historiqueSalaires; }
+    public List<com.gestionrh.sirh.model.EvenementCarriereModel> getCarriere() { return carriere; }
+    public void setCarriere(List<com.gestionrh.sirh.model.EvenementCarriereModel> carriere) { this.carriere = carriere; }
+    public List<PieceDossierVue> getPieces() { return pieces; }
+    public void setPieces(List<PieceDossierVue> pieces) { this.pieces = pieces; }
+    public List<String> getAlertes() { return alertes; }
+    public void setAlertes(List<String> alertes) { this.alertes = alertes; }
+    public String getAnciennete() { return anciennete; }
+    public void setAnciennete(String anciennete) { this.anciennete = anciennete; }
+    public boolean isDonneesSensiblesVisibles() { return donneesSensiblesVisibles; }
+    public void setDonneesSensiblesVisibles(boolean donneesSensiblesVisibles) { this.donneesSensiblesVisibles = donneesSensiblesVisibles; }
+    public boolean isDossierIncomplet() { return pieces.stream().anyMatch(PieceDossierVue::isBloquante); }
+    public long getNombrePiecesBloquantes() { return pieces.stream().filter(PieceDossierVue::isBloquante).count(); }
+    public String getStatutAdministratif() { return salarie == null ? null : salarie.getStatutAdministratif(); }
+    public boolean isSorti() { return "SORTI".equals(getStatutAdministratif()); }
+
     public SalarieResume getSalarie() { return salarie; }
     public void setSalarie(SalarieResume salarie) { this.salarie = salarie; }
     public String getCin() { return cin; }

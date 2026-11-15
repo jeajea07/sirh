@@ -13,6 +13,7 @@ public class DemandeForm {
     private Integer idPoste;
     private Integer nombrePostes = 1;
     private String motif;
+    private Integer idEmployeSortant;
     private String niveauUrgence = "URGENT";
     private Integer idTypeContrat;
     private Integer dureeMois;
@@ -66,6 +67,14 @@ public class DemandeForm {
 
     public void setMotif(String motif) {
         this.motif = motif;
+    }
+
+    public Integer getIdEmployeSortant() {
+        return idEmployeSortant;
+    }
+
+    public void setIdEmployeSortant(Integer idEmployeSortant) {
+        this.idEmployeSortant = idEmployeSortant;
     }
 
     public String getNiveauUrgence() {

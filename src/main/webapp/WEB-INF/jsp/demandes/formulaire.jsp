@@ -52,6 +52,16 @@
           </select>
         </div>
 
+        <div class="field" id="bloc-employe-sortant">
+          <label for="idEmployeSortant">Employé sortant (remplacement) *</label>
+          <select id="idEmployeSortant" name="idEmployeSortant">
+            <option value="">— Choisir —</option>
+            <c:forEach var="emp" items="${employesDepartement}">
+              <option value="${emp.id}" ${form.idEmployeSortant == emp.id ? 'selected' : ''}><c:out value="${emp.nomComplet}"/></option>
+            </c:forEach>
+          </select>
+        </div>
+
         <div class="field">
           <label for="niveauUrgence">Niveau d'urgence *</label>
           <select id="niveauUrgence" name="niveauUrgence">

@@ -29,6 +29,9 @@
         <option value="RECU" ${statut == 'RECU' ? 'selected' : ''}>Reçu</option>
         <option value="VERIFIE" ${statut == 'VERIFIE' ? 'selected' : ''}>Vérifié</option>
         <option value="REJETE" ${statut == 'REJETE' ? 'selected' : ''}>Rejeté</option>
+        <option value="A_RENOUVELER" ${statut == 'A_RENOUVELER' ? 'selected' : ''}>À renouveler</option>
+        <option value="EXPIRE" ${statut == 'EXPIRE' ? 'selected' : ''}>Expiré</option>
+        <option value="REMPLACE" ${statut == 'REMPLACE' ? 'selected' : ''}>Remplacé</option>
       </select>
     </div>
     <button class="btn" type="submit">Filtrer</button>
@@ -46,7 +49,7 @@
           <tbody>
             <c:forEach var="d" items="${documents.content}">
               <tr>
-                <td><b><c:out value="${d.titre}"/></b><br><span class="muted small"><c:out value="${d.typeLibelle}"/> · <c:out value="${d.tailleFr}"/></span></td>
+                <td><b><c:out value="${d.titre}"/></b><br><span class="muted small"><c:out value="${d.typeLibelle}"/> · <c:out value="${d.tailleFr}"/><c:if test="${d.dateExpirationFr != '—'}"> · expire le <c:out value="${d.dateExpirationFr}"/></c:if></span></td>
                 <td><c:out value="${d.employeNom}"/></td>
                 <td><c:out value="${d.contratReference}"/></td>
                 <td>v<c:out value="${d.version}"/></td>

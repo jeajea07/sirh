@@ -66,7 +66,7 @@
           <dt>Département</dt><dd><c:out value="${d.departement.designation}"/></dd>
           <dt>Poste</dt><dd><c:choose><c:when test="${empty d.poste}">—</c:when><c:otherwise><c:out value="${d.poste.designation}"/></c:otherwise></c:choose></dd>
           <dt>Nombre de postes</dt><dd><c:out value="${d.nombrePostes}"/></dd>
-          <dt>Motif</dt><dd><c:out value="${d.motifLibelle}"/></dd>
+          <dt>Motif</dt><dd><c:out value="${d.motifLibelle}"/></dd><c:if test="${not empty d.employeSortant}"><dt>Employé sortant</dt><dd><c:out value="${d.employeSortant.nomComplet}"/></dd></c:if>
           <dt>Urgence</dt><dd><c:out value="${d.urgenceLibelle}"/></dd>
           <dt>Contrat</dt><dd><c:choose><c:when test="${empty d.typeContrat}">—</c:when><c:otherwise><c:out value="${d.typeContrat.code}"/><c:if test="${not empty d.dureeMois}"> (<c:out value="${d.dureeMois}"/> mois)</c:if></c:otherwise></c:choose></dd>
           <dt>Salaire proposé</dt><dd><c:out value="${d.salaireFr}"/></dd>

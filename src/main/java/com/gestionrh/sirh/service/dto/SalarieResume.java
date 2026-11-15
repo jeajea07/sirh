@@ -17,6 +17,7 @@ public class SalarieResume {
     private final LocalDate dateEmbauche;
     private final boolean actif;
     private final String initiales;
+    private String statutAdministratif;
 
     public SalarieResume(Integer id, String matricule, String nom, String prenom, String email,
                          String telephone, String poste, String departement, LocalDate dateEmbauche,
@@ -46,7 +47,16 @@ public class SalarieResume {
     public LocalDate getDateEmbauche() { return dateEmbauche; }
     public String getDateEmbaucheFr() { return Formats.date(dateEmbauche); }
     public boolean isActif() { return actif; }
-    public String getStatutLibelle() { return actif ? "Actif" : "Sorti"; }
-    public String getStatutBadge() { return actif ? "badge-ok" : "badge-bad"; }
+    /** Bloc 5 : statut administratif (EN_INTEGRATION, ACTIF, SUSPENDU, EN_PREAVIS, SORTI). */
+    public String getStatutAdministratif() { return statutAdministratif; }
+    public void setStatutAdministratif(String statutAdministratif) { this.statutAdministratif = statutAdministratif; }
+    public String getStatutLibelle() {
+        return statutAdministratif == null ? (actif ? "Actif" : "Sorti")
+                : com.gestionrh.sirh.model.EmployeModel.libelleStatut(statutAdministratif);
+    }
+    public String getStatutBadge() {
+        return statutAdministratif == null ? (actif ? "badge-ok" : "badge-bad")
+                : com.gestionrh.sirh.model.EmployeModel.badgeStatut(statutAdministratif);
+    }
     public String getInitiales() { return initiales; }
 }

@@ -9,7 +9,10 @@
   <h1><c:out value="${offre.titre}"/> <span class="badge"><c:out value="${offre.statut}"/></span>
     <c:if test="${offreFermeeParDate}"><span class="badge TERMINEE">Clôturée (date limite dépassée)</span></c:if>
   </h1>
-  <a class="btn sec" href="${ctx}/recrutement/offres">Retour a la liste</a>
+  <div>
+    <c:if test="${offre.statut == 'PUBLIEE'}"><a class="btn" href="${ctx}/offres/${offre.idOffre}" target="_blank" rel="noopener">Voir sur le site vitrine ↗</a></c:if>
+    <a class="btn sec" href="${ctx}/recrutement/offres">Retour a la liste</a>
+  </div>
 </div>
 
 <c:if test="${not empty manquants}">
@@ -38,7 +41,7 @@
 <div class="carte">
   <c:if test="${offre.statut == 'BROUILLON'}">
     <a class="btn sec" href="${base}/modifier">Modifier</a>
-    <form class="inline" method="post" action="${base}/valider"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn ok" type="submit">Valider</button></form>
+    <form class="inline" method="post" action="${base}/valider"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><button class="btn ok" type="submit">Valider et publier sur le site vitrine</button></form>
     <form class="inline" method="post" action="${base}/supprimer" onsubmit="return confirm('Supprimer ce brouillon ?');">
       <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
       <button class="btn danger" type="submit">Supprimer</button></form>

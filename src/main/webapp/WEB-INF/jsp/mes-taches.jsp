@@ -6,6 +6,7 @@
   <div class="page-head"><div><h1>Mes tâches</h1><p>Tâches d'intégration qui vous sont assignées.</p></div><c:if test="${not empty retard}"><span class="badge badge-bad">${retard.size()} en retard</span></c:if></div>
   <f:flash/>
   <c:choose>
+    <c:when test="${sansEmploye}"><div class="card empty-state"><b>Aucune tâche</b>Votre compte n'est rattaché à aucun employé : aucune tâche d'intégration ne peut vous être assignée.</div></c:when>
     <c:when test="${empty taches}"><div class="card empty-state"><b>Aucune tâche assignée</b>Vous n'avez pas de tâche d'onboarding en cours.</div></c:when>
     <c:otherwise>
       <div class="card">
@@ -25,7 +26,7 @@
                   <c:if test="${t.statut != 'BLOQUEE' and t.dependancePrete}"><form method="post" action="<c:url value='/mes-taches'/>"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><input type="hidden" name="action" value="terminer"><input type="hidden" name="idTache" value="${t.id}"><button class="btn btn-sm btn-ok" type="submit">Terminer</button></form></c:if>
                   <c:if test="${t.statut != 'BLOQUEE'}"><details><summary class="btn btn-sm">Bloquer</summary><form method="post" action="<c:url value='/mes-taches'/>" class="stack" style="margin-top:8px;min-width:220px"><input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"><input type="hidden" name="action" value="bloquer"><input type="hidden" name="idTache" value="${t.id}"><input type="text" name="commentaire" placeholder="Motif du blocage" required><button class="btn btn-sm btn-danger btn-block" type="submit">Confirmer le blocage</button></form></details></c:if>
                 </c:if>
-                <a class="btn btn-sm" href="<c:url value='/rh/onboardings/${t.idOnboarding}'/>">Voir</a>
+                <c:if test="${role == 'RH'}"><a class="btn btn-sm" href="<c:url value='/rh/onboardings/${t.idOnboarding}'/>">Voir</a></c:if>
               </div>
             </div>
           </c:forEach>

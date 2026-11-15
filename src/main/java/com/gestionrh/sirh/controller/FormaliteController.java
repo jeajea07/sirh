@@ -119,7 +119,8 @@ public class FormaliteController {
     }
 
     @PostMapping("/{id}/confirmer")
-    public String confirmer(@PathVariable Integer id, @RequestParam Integer idDocumentJustificatif,
+    public String confirmer(@PathVariable Integer id,
+                            @RequestParam(required = false) Integer idDocumentJustificatif,
                             Authentication auth, RedirectAttributes flash) {
         service.marquerConfirmee(id, idDocumentJustificatif, moi(auth));
         flash.addFlashAttribute("succes", "Déclaration confirmée.");

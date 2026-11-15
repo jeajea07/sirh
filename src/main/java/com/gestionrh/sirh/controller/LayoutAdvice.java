@@ -27,9 +27,14 @@ public class LayoutAdvice {
     private final EmployeRepository employes;
     private final NotificationService notifications;
     private final OnboardingService onboarding;
+    private final com.gestionrh.sirh.service.ManagerService managers;
+    private final com.gestionrh.sirh.service.PlanningService plannings;
 
     public LayoutAdvice(EmployeRepository employes, NotificationService notifications,
-                        OnboardingService onboarding) {
+                        OnboardingService onboarding, com.gestionrh.sirh.service.ManagerService managers,
+                        com.gestionrh.sirh.service.PlanningService plannings) {
+        this.managers = managers;
+        this.plannings = plannings;
         this.employes = employes;
         this.notifications = notifications;
         this.onboarding = onboarding;
@@ -58,6 +63,9 @@ public class LayoutAdvice {
             model.addAttribute("notifications", notifications.recentes(employe.getId(), role));
             model.addAttribute("nbNotifications", notifications.nonLues(employe.getId()));
             model.addAttribute("nbTaches", onboarding.compterTachesDe(employe.getId()));
+            // Blocs 6 et 7 : liens « Mon équipe » et « Plannings ».
+            model.addAttribute("estManager", !managers.equipeDe(employe).isEmpty());
+            model.addAttribute("nbPlanningsAValider", plannings.aValiderPar(employe).size());
         }
     }
 

@@ -11,12 +11,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.gestionrh.sirh.service.Bloc2BService;
+import com.gestionrh.sirh.service.recrutement.NotificationRecrutementService;
 
 @ExtendWith(MockitoExtension.class)
 class DossierValideEventListenerTest {
 
     @Mock
     private Bloc2BService bloc2BService;
+
+    @Mock
+    private NotificationRecrutementService notifications;
 
     @InjectMocks
     private DossierValideEventListener listener;

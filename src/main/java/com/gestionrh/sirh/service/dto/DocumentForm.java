@@ -9,6 +9,17 @@ public class DocumentForm {
     private Integer idEmploye;
     private Integer idContrat;
     private Integer idOnboardingTache;
+    // Bloc 5 : pièce du dossier salarié
+    private Integer idTypeAdministratif;
+    private java.time.LocalDate dateEmission;
+    private java.time.LocalDate dateExpiration;
+
+    public Integer getIdTypeAdministratif() { return idTypeAdministratif; }
+    public void setIdTypeAdministratif(Integer idTypeAdministratif) { this.idTypeAdministratif = idTypeAdministratif; }
+    public java.time.LocalDate getDateEmission() { return dateEmission; }
+    public void setDateEmission(java.time.LocalDate dateEmission) { this.dateEmission = dateEmission; }
+    public java.time.LocalDate getDateExpiration() { return dateExpiration; }
+    public void setDateExpiration(java.time.LocalDate dateExpiration) { this.dateExpiration = dateExpiration; }
 
     public String getTypeDocument() { return typeDocument; }
     public void setTypeDocument(String typeDocument) { this.typeDocument = typeDocument; }

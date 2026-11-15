@@ -31,5 +31,7 @@ public interface OffreRepository extends JpaRepository<Offre, Integer> {
     List<Offre> findByStatutAndDateLimiteBefore(OffreStatut statut, LocalDate date);
 
     /** Regle : une demande ne donne pas plusieurs offres actives (ex. statuts exclus : ANNULEE, TERMINEE). */
+    boolean existsByIdDemandeBesoin(Integer idDemandeBesoin);
+
     boolean existsByIdDemandeBesoinAndStatutNotIn(Integer idDemandeBesoin, Collection<OffreStatut> statuts);
 }

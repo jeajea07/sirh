@@ -11,7 +11,7 @@
     <div class="card"><h2 style="margin-bottom:12px">Détail de la demande</h2><dl class="kv">
       <dt>Numéro</dt><dd><c:out value="${d.numero}"/></dd><dt>Département</dt><dd><c:out value="${d.departement.designation}"/></dd>
       <dt>Poste</dt><dd><c:out value="${d.poste.designation}"/></dd><dt>Nombre de postes</dt><dd><c:out value="${d.nombrePostes}"/></dd>
-      <dt>Motif</dt><dd><c:out value="${d.motifLibelle}"/></dd><dt>Urgence</dt><dd><c:out value="${d.urgenceLibelle}"/></dd>
+      <dt>Motif</dt><dd><c:out value="${d.motifLibelle}"/></dd><c:if test="${not empty d.employeSortant}"><dt>Employé sortant</dt><dd><c:out value="${d.employeSortant.nomComplet}"/></dd></c:if><dt>Urgence</dt><dd><c:out value="${d.urgenceLibelle}"/></dd>
       <dt>Contrat</dt><dd><c:out value="${d.typeContrat.code}"/><c:if test="${not empty d.dureeMois}"> — <c:out value="${d.dureeMois}"/> mois</c:if></dd>
       <dt>Salaire mensuel</dt><dd><c:out value="${d.salaireFr}"/></dd><dt>Date souhaitée</dt><dd><c:out value="${d.dateSouhaiteeFr}"/></dd>
     </dl><c:if test="${not empty d.justification}"><h3 style="margin:16px 0 6px">Justification</h3><p class="demande-texte"><c:out value="${d.justification}"/></p></c:if></div>

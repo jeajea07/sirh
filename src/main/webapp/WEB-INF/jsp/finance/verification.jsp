@@ -52,7 +52,7 @@
           <dt>Département</dt><dd><c:out value="${d.departement.designation}"/></dd>
           <dt>Poste</dt><dd><c:out value="${d.poste.designation}"/></dd>
           <dt>Nombre de postes</dt><dd><c:out value="${d.nombrePostes}"/></dd>
-          <dt>Motif</dt><dd><c:out value="${d.motifLibelle}"/></dd>
+          <dt>Motif</dt><dd><c:out value="${d.motifLibelle}"/></dd><c:if test="${not empty d.employeSortant}"><dt>Employé sortant</dt><dd><c:out value="${d.employeSortant.nomComplet}"/></dd></c:if>
           <dt>Urgence</dt><dd><c:out value="${d.urgenceLibelle}"/></dd>
           <dt>Contrat</dt><dd><c:out value="${d.typeContrat.code}"/></dd>
           <dt>Date souhaitée</dt><dd><c:out value="${d.dateSouhaiteeFr}"/></dd>

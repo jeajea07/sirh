@@ -19,6 +19,20 @@ public class SalarieForm {
     private LocalDate dateNaissance;
     private LocalDate dateEmbauche;
     private Integer nombreEnfants;
+    // Bloc 5
+    private String sexe;
+    private String nationalite;
+    private String contactUrgenceNom;
+    private String contactUrgenceTelephone;
+
+    public String getSexe() { return sexe; }
+    public void setSexe(String sexe) { this.sexe = sexe; }
+    public String getNationalite() { return nationalite; }
+    public void setNationalite(String nationalite) { this.nationalite = nationalite; }
+    public String getContactUrgenceNom() { return contactUrgenceNom; }
+    public void setContactUrgenceNom(String contactUrgenceNom) { this.contactUrgenceNom = contactUrgenceNom; }
+    public String getContactUrgenceTelephone() { return contactUrgenceTelephone; }
+    public void setContactUrgenceTelephone(String contactUrgenceTelephone) { this.contactUrgenceTelephone = contactUrgenceTelephone; }
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }

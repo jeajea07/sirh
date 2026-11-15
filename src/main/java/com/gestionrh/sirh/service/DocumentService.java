@@ -27,11 +27,13 @@ import com.gestionrh.sirh.model.ContratModel;
 import com.gestionrh.sirh.model.DocumentModel;
 import com.gestionrh.sirh.model.EmployeModel;
 import com.gestionrh.sirh.model.OnboardingTacheModel;
+import com.gestionrh.sirh.model.TypeDocumentAdministratifModel;
 import com.gestionrh.sirh.model.UtilisateurModel;
 import com.gestionrh.sirh.repository.ContratRepository;
 import com.gestionrh.sirh.repository.DocumentRepository;
 import com.gestionrh.sirh.repository.EmployeRepository;
 import com.gestionrh.sirh.repository.OnboardingTacheRepository;
+import com.gestionrh.sirh.repository.TypeDocumentAdministratifRepository;
 import com.gestionrh.sirh.repository.UtilisateurRepository;
 import com.gestionrh.sirh.service.dto.DocumentForm;
 import com.gestionrh.sirh.service.dto.DocumentResume;
@@ -53,12 +55,15 @@ public class DocumentService {
     private final OnboardingTacheRepository taches;
     private final UtilisateurRepository utilisateurs;
     private final AuditService audit;
+    private final TypeDocumentAdministratifRepository typesAdministratifs;
     private final String uploadDir;
 
     public DocumentService(DocumentRepository documents, EmployeRepository employes,
                            ContratRepository contrats, OnboardingTacheRepository taches,
                            UtilisateurRepository utilisateurs, AuditService audit,
+                           TypeDocumentAdministratifRepository typesAdministratifs,
                            @Value("${app.upload.dir:uploads}") String uploadDir) {
+        this.typesAdministratifs = typesAdministratifs;
         this.documents = documents;
         this.employes = employes;
         this.contrats = contrats;
@@ -71,6 +76,7 @@ public class DocumentService {
     @Transactional
     public DocumentModel enregistrer(MultipartFile fichier, DocumentForm form, EmployeModel auteur) {
         verifierFichier(fichier);
+        TypeDocumentAdministratifModel piece = preparerPiece(form);
         if (form.getTitre() == null || form.getTitre().isBlank()) {
             throw new Bloc4Exception("Le titre du document est obligatoire.");
         }
@@ -136,6 +142,15 @@ public class DocumentService {
         d.setDateDepot(LocalDateTime.now());
         d.setDeposePar(auteur);
         d.setCommentaire(form.getCommentaire());
+        if (piece != null) {
+            if (employe == null) {
+                throw new Bloc4Exception("Une pièce du dossier doit être rattachée à un salarié.");
+            }
+            d.setTypeAdministratif(piece);
+            d.setDateEmission(form.getDateEmission());
+            d.setDateExpiration(form.getDateExpiration());
+            d.setVersion(documents.versionsActives(employe.getId(), piece.getId()).size() + 1);
+        }
         d = documents.save(d);
         audit.tracer("DOCUMENT", d.getId(), "DEPOT", null, d.getTitre(), null, auteur);
         return d;
@@ -214,11 +229,35 @@ public class DocumentService {
         if (!"RECU".equals(d.getStatutValidation())) {
             throw new Bloc4Exception("Seul un document reçu peut être vérifié.");
         }
-        d.setStatutValidation("VERIFIE");
+        java.time.LocalDate aujourdhui = java.time.LocalDate.now();
+        if (d.getDateExpiration() != null && d.getDateExpiration().isBefore(aujourdhui)) {
+            throw new Bloc4Exception("Cette pièce a expiré le " + Formats.date(d.getDateExpiration())
+                    + " : rejetez-la et demandez une pièce à jour.");
+        }
+        String statut = DossierDocumentService.statutSelonDate(d, aujourdhui);
+        d.setStatutValidation(statut);
         d.setDateVerification(LocalDateTime.now());
         d.setVerifiePar(auteur);
+        // RG-DO06 : la nouvelle version vérifiée remplace les précédentes, qui restent consultables.
+        if (d.getTypeAdministratif() != null && d.getEmploye() != null) {
+            for (DocumentModel ancienne : documents.versionsActives(d.getEmploye().getId(),
+                    d.getTypeAdministratif().getId())) {
+                if (ancienne.getId().equals(d.getId())
+                        || !Set.of("VERIFIE", "A_RENOUVELER", "EXPIRE").contains(ancienne.getStatutValidation())) {
+                    continue;
+                }
+                String avant = ancienne.getStatutValidation();
+                ancienne.setStatutValidation("REMPLACE");
+                documents.save(ancienne);
+                if (d.getIdDocumentRemplace() == null) {
+                    d.setIdDocumentRemplace(ancienne.getId());
+                }
+                audit.tracer("DOCUMENT", ancienne.getId(), "REMPLACEMENT", avant, "REMPLACE",
+                        "Remplacé par le document " + d.getId(), auteur);
+            }
+        }
         documents.save(d);
-        audit.tracer("DOCUMENT", id, "VERIFICATION", "RECU", "VERIFIE", null, auteur);
+        audit.tracer("DOCUMENT", id, "VERIFICATION", "RECU", statut, null, auteur);
         if (d.getDeposePar() != null) {
             // notification informative, sans bloquer l'action
         }
@@ -240,6 +279,44 @@ public class DocumentService {
         d.setVerifiePar(auteur);
         documents.save(d);
         audit.tracer("DOCUMENT", id, "REJET", "RECU", "REJETE", motif, auteur);
+    }
+
+    /** Bloc 5 : contrôle d'une pièce du dossier (type paramétré, dates de validité — RG-DO01, RG-DO04). */
+    private TypeDocumentAdministratifModel preparerPiece(DocumentForm form) {
+        if (form.getIdTypeAdministratif() == null) {
+            if (form.getDateExpiration() != null && form.getDateEmission() != null
+                    && !form.getDateExpiration().isAfter(form.getDateEmission())) {
+                throw new Bloc4Exception("La date d'expiration doit être postérieure à la date d'émission.");
+            }
+            return null;
+        }
+        TypeDocumentAdministratifModel type = typesAdministratifs.findById(form.getIdTypeAdministratif())
+                .filter(TypeDocumentAdministratifModel::isActif)
+                .orElseThrow(() -> new Bloc4Exception("Type de pièce inconnu."));
+        java.time.LocalDate aujourdhui = java.time.LocalDate.now();
+        if (form.getDateEmission() != null && form.getDateEmission().isAfter(aujourdhui)) {
+            throw new Bloc4Exception("La date d'émission ne peut pas être dans le futur.");
+        }
+        if (form.getDateExpiration() == null && form.getDateEmission() != null && type.getDureeValiditeJours() != null) {
+            form.setDateExpiration(form.getDateEmission().plusDays(type.getDureeValiditeJours()));
+        }
+        if (type.isExpirationRequise() && form.getDateExpiration() == null) {
+            throw new Bloc4Exception("« " + type.getLibelle() + " » a une durée de validité : indiquez la date"
+                    + (type.getDureeValiditeJours() == null ? " d'expiration." : " d'émission ou d'expiration."));
+        }
+        if (form.getDateExpiration() != null && form.getDateEmission() != null
+                && !form.getDateExpiration().isAfter(form.getDateEmission())) {
+            throw new Bloc4Exception("La date d'expiration doit être postérieure à la date d'émission.");
+        }
+        if (form.getDateExpiration() != null && form.getDateExpiration().isBefore(aujourdhui)) {
+            throw new Bloc4Exception("Cette pièce est déjà expirée : déposez une pièce en cours de validité.");
+        }
+        form.setTypeDocument(type.getCategorie());
+        form.setNiveauConfidentialite(type.getNiveauConfidentialite());
+        if (form.getTitre() == null || form.getTitre().isBlank()) {
+            form.setTitre(type.getLibelle());
+        }
+        return type;
     }
 
     private void verifierFichier(MultipartFile fichier) {
@@ -282,6 +359,13 @@ public class DocumentService {
     }
 
     private DocumentResume resume(DocumentModel d) {
+        DocumentResume r = resumeBloc4(d);
+        r.setDateExpirationFr(d.getDateExpirationFr());
+        r.setPieceLibelle(d.getTypeAdministratif() == null ? null : d.getTypeAdministratif().getLibelle());
+        return r;
+    }
+
+    private DocumentResume resumeBloc4(DocumentModel d) {
         return new DocumentResume(d.getId(), d.getTitre(), d.getTypeDocument(), d.getTypeLibelle(),
                 d.getEmploye() == null ? null : d.getEmploye().getNomComplet(),
                 d.getContrat() == null ? null : d.getContrat().getReference(),

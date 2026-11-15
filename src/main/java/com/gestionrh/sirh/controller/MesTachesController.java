@@ -29,10 +29,18 @@ public class MesTachesController {
 
     @GetMapping
     public String liste(Authentication auth, Model model) {
-        EmployeModel moi = moi(auth);
+        // Pas d'exception ici : l'@ExceptionHandler redirige vers /mes-taches, ce qui bouclerait
+        // à l'infini pour un compte sans employé rattaché (ex. un candidat).
+        EmployeModel moi = auth == null ? null : employes.trouverParLogin(auth.getName()).orElse(null);
+        if (moi == null) {
+            model.addAttribute("taches", java.util.List.of());
+            model.addAttribute("retard", java.util.List.of());
+            model.addAttribute("sansEmploye", true);
+            return "mes-taches";
+        }
         model.addAttribute("taches", service.tachesDe(moi.getId()));
         model.addAttribute("retard", service.tachesEnRetard().stream()
-                .filter(t -> t.getResponsableNom().equals(moi.getNomComplet())).toList());
+                .filter(t -> moi.getNomComplet().equals(t.getResponsableNom())).toList());
         return "mes-taches";
     }
 

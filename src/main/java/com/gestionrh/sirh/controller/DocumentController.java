@@ -34,9 +34,11 @@ public class DocumentController {
     private final DocumentService service;
     private final EmployeRepository employes;
     private final ContratRepository contrats;
+    private final com.gestionrh.sirh.service.DossierDocumentService pieces;
 
     public DocumentController(DocumentService service, EmployeRepository employes,
-                              ContratRepository contrats) {
+                              ContratRepository contrats, com.gestionrh.sirh.service.DossierDocumentService pieces) {
+        this.pieces = pieces;
         this.service = service;
         this.employes = employes;
         this.contrats = contrats;
@@ -55,8 +57,10 @@ public class DocumentController {
     @GetMapping("/nouveau")
     public String nouveau(@RequestParam(required = false) Integer idEmploye,
                           @RequestParam(required = false) Integer idContrat,
-                          @RequestParam(required = false) Integer idTache, Model model) {
+                          @RequestParam(required = false) Integer idTache,
+                          @RequestParam(required = false) Integer idTypeAdministratif, Model model) {
         DocumentForm form = new DocumentForm();
+        form.setIdTypeAdministratif(idTypeAdministratif);
         form.setIdEmploye(idEmploye);
         form.setIdContrat(idContrat);
         form.setIdOnboardingTache(idTache);
@@ -119,6 +123,7 @@ public class DocumentController {
     private void referentiels(Model model) {
         model.addAttribute("employes", employes.findByActifTrueOrderByNomAsc());
         model.addAttribute("contrats", contrats.findAll());
+        model.addAttribute("typesPieces", pieces.typesActifs());
     }
 
     private EmployeModel moi(Authentication auth) {

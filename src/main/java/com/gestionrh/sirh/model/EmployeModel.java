@@ -78,6 +78,29 @@ public class EmployeModel {
     @Column(name = "actif", nullable = false)
     private boolean actif = true;
 
+    // --- Bloc 5 : dossier administratif ---
+    @Column(name = "sexe")
+    private String sexe;
+
+    @Column(name = "nationalite")
+    private String nationalite;
+
+    @Column(name = "contact_urgence_nom")
+    private String contactUrgenceNom;
+
+    @Column(name = "contact_urgence_telephone")
+    private String contactUrgenceTelephone;
+
+    /** EN_INTEGRATION, ACTIF, SUSPENDU, EN_PREAVIS, SORTI (Bloc 5 §6.1). */
+    @Column(name = "statut_administratif", nullable = false)
+    private String statutAdministratif = "ACTIF";
+
+    @Column(name = "date_notification_sortie")
+    private LocalDate dateNotificationSortie;
+
+    @Column(name = "sortie_enregistree_par_id")
+    private Integer sortieEnregistreeParId;
+
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -159,4 +182,50 @@ public class EmployeModel {
     public String getDateEmbaucheFr() { return Formats.date(dateEmbauche); }
 
     public boolean isSorti() { return dateSortie != null || !actif; }
+
+    public String getSexe() { return sexe; }
+    public void setSexe(String sexe) { this.sexe = sexe; }
+
+    public String getNationalite() { return nationalite; }
+    public void setNationalite(String nationalite) { this.nationalite = nationalite; }
+
+    public String getContactUrgenceNom() { return contactUrgenceNom; }
+    public void setContactUrgenceNom(String contactUrgenceNom) { this.contactUrgenceNom = contactUrgenceNom; }
+
+    public String getContactUrgenceTelephone() { return contactUrgenceTelephone; }
+    public void setContactUrgenceTelephone(String contactUrgenceTelephone) { this.contactUrgenceTelephone = contactUrgenceTelephone; }
+
+    public String getStatutAdministratif() { return statutAdministratif; }
+    public void setStatutAdministratif(String statutAdministratif) { this.statutAdministratif = statutAdministratif; }
+
+    public LocalDate getDateNotificationSortie() { return dateNotificationSortie; }
+    public void setDateNotificationSortie(LocalDate dateNotificationSortie) { this.dateNotificationSortie = dateNotificationSortie; }
+
+    public Integer getSortieEnregistreeParId() { return sortieEnregistreeParId; }
+    public void setSortieEnregistreeParId(Integer sortieEnregistreeParId) { this.sortieEnregistreeParId = sortieEnregistreeParId; }
+
+    public String getStatutAdministratifLibelle() { return libelleStatut(statutAdministratif); }
+    public String getStatutAdministratifBadge() { return badgeStatut(statutAdministratif); }
+
+    public static String libelleStatut(String statut) {
+        if (statut == null) return "—";
+        return switch (statut) {
+            case "EN_INTEGRATION" -> "En intégration";
+            case "ACTIF" -> "Actif";
+            case "SUSPENDU" -> "Suspendu";
+            case "EN_PREAVIS" -> "En préavis";
+            case "SORTI" -> "Sorti";
+            default -> statut;
+        };
+    }
+
+    public static String badgeStatut(String statut) {
+        if (statut == null) return "badge-info";
+        return switch (statut) {
+            case "ACTIF" -> "badge-ok";
+            case "SUSPENDU", "EN_PREAVIS" -> "badge-warn";
+            case "SORTI" -> "badge-bad";
+            default -> "badge-info";
+        };
+    }
 }

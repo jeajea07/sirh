@@ -7,21 +7,14 @@ import com.gestionrh.sirh.enums.recrutement.NiveauEtude;
 import com.gestionrh.sirh.enums.recrutement.TypeCritere;
 import com.gestionrh.sirh.exception.recrutement.RegleMetierException;
 import com.gestionrh.sirh.event.recrutement.OffreCreeeEvent;
-import com.gestionrh.sirh.model.CircuitValidationModel;
 import com.gestionrh.sirh.model.CritereRecrutementModel;
 import com.gestionrh.sirh.model.DemandeBesoinModel;
-import com.gestionrh.sirh.model.ValidationEtapeModel;
 import com.gestionrh.sirh.model.recrutement.CritereOffre;
 import com.gestionrh.sirh.model.recrutement.Offre;
-import com.gestionrh.sirh.repository.CircuitValidationRepository;
 import com.gestionrh.sirh.repository.DemandeBesoinRepository;
-import com.gestionrh.sirh.repository.ValidationEtapeRepository;
 import com.gestionrh.sirh.repository.recrutement.OffreRepository;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,18 +25,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class OffreDepuisDemandeService {
 
     private final DemandeBesoinRepository demandes;
-    private final ValidationEtapeRepository validations;
-    private final CircuitValidationRepository circuit;
     private final OffreRepository offres;
     private final OffreService offreService;
     private final ApplicationEventPublisher events;
 
-    public OffreDepuisDemandeService(DemandeBesoinRepository demandes, ValidationEtapeRepository validations,
-            CircuitValidationRepository circuit, OffreRepository offres, OffreService offreService,
+    public OffreDepuisDemandeService(DemandeBesoinRepository demandes, OffreRepository offres, OffreService offreService,
             ApplicationEventPublisher events) {
         this.demandes = demandes;
-        this.validations = validations;
-        this.circuit = circuit;
         this.offres = offres;
         this.offreService = offreService;
         this.events = events;
@@ -83,7 +71,9 @@ public class OffreDepuisDemandeService {
         form.setNombrePostes(demande.getNombrePostes());
         form.setDureeMois(demande.getDureeMois());
         form.setSalairePropose(demande.getSalairePropose());
-        form.setMissions(demande.getCritereRecrutement() == null ? null : demande.getCritereRecrutement().getMissions());
+        String missions = demande.getCritereRecrutement() == null ? null : demande.getCritereRecrutement().getMissions();
+        // Les missions sont facultatives dans la demande mais obligatoires pour publier : repli sur la justification.
+        form.setMissions(missions == null || missions.isBlank() ? demande.getJustification() : missions);
         form.setDateLimite(null); // Le RH choisit la date avant validation.
 
         Offre offre = offreService.creer(form);
@@ -93,16 +83,10 @@ public class OffreDepuisDemandeService {
     }
 
     private boolean demandeAcceptee(DemandeBesoinModel demande) {
-        // Le bloc 1 ne renseigne pas de statut final après le dernier avis ; on vérifie les dernières décisions requises.
-        if (demande.getStatut() != null && Set.of("REJETEE", "RETIREE", "BROUILLON").contains(demande.getStatut())) return false;
-        List<CircuitValidationModel> etapes = circuit.findAllByOrderByIdAsc().stream()
-                .filter(CircuitValidationModel::isObligatoire).toList();
-        if (etapes.isEmpty()) return false;
-        Map<String, String> dernieresDecisions = new HashMap<>();
-        for (ValidationEtapeModel validation : validations.findByIdDemandeBesoinOrderByIdAsc(demande.getId())) {
-            dernieresDecisions.put(validation.getEtape(), validation.getDecision());
-        }
-        return etapes.stream().allMatch(e -> "VALIDEE".equals(dernieresDecisions.get(e.getEtape())));
+        // Le bloc 1 pose statut = VALIDEE uniquement lors de la décision finale de la DG.
+        // L'étape RESPONSABLE déclarée dans circuit_validation n'est pas parcourue par le workflow
+        // (RH → FINANCE → DG) : on ne peut donc pas exiger une validation sur chaque étape du circuit.
+        return "VALIDEE".equals(demande.getStatut());
     }
 
     private void copierCriteres(CritereRecrutementModel source, Offre offre) {

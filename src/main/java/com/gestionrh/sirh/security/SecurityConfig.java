@@ -25,7 +25,7 @@ public class SecurityConfig {
                 // forward/include internes vers les JSP (/WEB-INF/jsp/...) : sinon boucle de redirection vers /connexion
                 .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR).permitAll()
                 // pages et ressources publiques
-                .requestMatchers("/connexion", "/error", "/css/**", "/js/**", "/logo*").permitAll()
+                .requestMatchers("/", "/connexion", "/error", "/css/**", "/js/**", "/logo*").permitAll()
                 // espaces réservés à un rôle (à adapter à vos URL)
                 .requestMatchers("/responsable/**").hasRole("RESPONSABLE")
                 .requestMatchers("/technicien/**").hasRole("TECHNICIEN")

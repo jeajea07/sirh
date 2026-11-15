@@ -23,6 +23,9 @@ public class DocumentResume {
     private final Integer idEmploye;
     private final Integer idContrat;
     private final Integer idTache;
+    // Bloc 5
+    private String dateExpirationFr = "—";
+    private String pieceLibelle;
 
     public DocumentResume(Integer id, String titre, String typeDocument, String typeLibelle,
                           String employeNom, String contratReference, String nomFichier,
@@ -53,6 +56,11 @@ public class DocumentResume {
         this.idContrat = idContrat;
         this.idTache = idTache;
     }
+
+    public String getDateExpirationFr() { return dateExpirationFr; }
+    public void setDateExpirationFr(String dateExpirationFr) { this.dateExpirationFr = dateExpirationFr; }
+    public String getPieceLibelle() { return pieceLibelle; }
+    public void setPieceLibelle(String pieceLibelle) { this.pieceLibelle = pieceLibelle; }
 
     public Integer getId() { return id; }
     public String getTitre() { return titre; }

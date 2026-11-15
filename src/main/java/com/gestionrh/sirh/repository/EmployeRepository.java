@@ -51,4 +51,17 @@ public interface EmployeRepository extends JpaRepository<EmployeModel, Integer> 
                                   Pageable pageable);
 
     long countByActifTrue();
+
+    Optional<EmployeModel> findByNumeroCnaps(String numeroCnaps);
+
+    /** Verrou de ligne : sérialise les demandes concurrentes d'un même salarié (RG-CH05). */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from EmployeModel e where e.id = :id")
+    Optional<EmployeModel> verrouiller(@Param("id") Integer idEmploye);
+
+    @Query("select u.role from UtilisateurModel u where u.idEmploye = :id")
+    Optional<String> roleDe(@Param("id") Integer idEmploye);
+
+    /** Bloc 5 — sorties programmées arrivées à échéance (RG-SO02). */
+    List<EmployeModel> findByStatutAdministratifAndDateSortieLessThanEqual(String statut, java.time.LocalDate jour);
 }

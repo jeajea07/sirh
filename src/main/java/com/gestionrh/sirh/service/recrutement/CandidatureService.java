@@ -72,7 +72,8 @@ public class CandidatureService {
             }
 
             Candidature candidature = new Candidature();
-            candidature.setNumero("TMP-" + UUID.randomUUID());
+            // candidature.numero est un varchar(30) : "TMP-" + 26 caractères hexadécimaux uniques.
+            candidature.setNumero("TMP-" + UUID.randomUUID().toString().replace("-", "").substring(0, 26));
             candidature.setCandidat(candidat);
             candidature.setOffre(offre);
             candidature.setSpontanee(offre == null);

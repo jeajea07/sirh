@@ -63,6 +63,7 @@
 
       <button class="btn btn-primary btn-block" type="submit">Se connecter</button>
     </form>
+    <p class="muted small center" style="margin-top:14px">Vous cherchez un emploi ? <a class="bold" href="<c:url value='/offres'/>">Voir nos offres d'emploi</a></p>
   </div>
 </div>
 

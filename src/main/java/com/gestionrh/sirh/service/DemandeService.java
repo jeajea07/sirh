@@ -111,6 +111,12 @@ public class DemandeService {
     public List<String> verifierSoumission(DemandeForm f) {
         List<String> erreurs = verifierBrouillon(f);
 
+        if ("REMPLACEMENT".equals(f.getMotif())) {
+            if (f.getIdEmployeSortant() == null || !employes.existsById(f.getIdEmployeSortant())) {
+                erreurs.add("Une demande de remplacement doit indiquer l'employé sortant.");
+            }
+        }
+
         if (!estDansListe(f.getNiveauUrgence(), "URGENT", "CRITIQUE")) {
             erreurs.add("Le niveau d'urgence est obligatoire.");
         }
@@ -185,6 +191,9 @@ public class DemandeService {
             d.setNombrePostes(f.getNombrePostes());
         }
         d.setMotif(f.getMotif());
+        d.setEmployeSortant("REMPLACEMENT".equals(f.getMotif()) && f.getIdEmployeSortant() != null
+                ? employes.findById(f.getIdEmployeSortant()).orElse(null)
+                : null);
         d.setNiveauUrgence(f.getNiveauUrgence());
         d.setTypeContrat(type);
         if (type != null && type.isAvecDuree()) {
@@ -405,6 +414,9 @@ public class DemandeService {
         }
         f.setNombrePostes(d.getNombrePostes());
         f.setMotif(d.getMotif());
+        if (d.getEmployeSortant() != null) {
+            f.setIdEmployeSortant(d.getEmployeSortant().getId());
+        }
         f.setNiveauUrgence(d.getNiveauUrgence());
         if (d.getTypeContrat() != null) {
             f.setIdTypeContrat(d.getTypeContrat().getId());

@@ -47,11 +47,13 @@ public class Bloc3Controller {
     private final DepartementRepository departements;
     private final CandidatureRepository candidatures;
     private final SelectionRepository selections;
+    private final com.gestionrh.sirh.service.recrutement.EntretienService entretiens;
 
     public Bloc3Controller(SelectionService service, RecrutementAdapter recrutementAdapter,
                            EmployeRepository employes, PosteRepository postes,
                            DepartementRepository departements, CandidatureRepository candidatures,
-                           SelectionRepository selections) {
+                           SelectionRepository selections,
+                           com.gestionrh.sirh.service.recrutement.EntretienService entretiens) {
         this.service = service;
         this.recrutementAdapter = recrutementAdapter;
         this.employes = employes;
@@ -59,6 +61,7 @@ public class Bloc3Controller {
         this.departements = departements;
         this.candidatures = candidatures;
         this.selections = selections;
+        this.entretiens = entretiens;
     }
 
     @ExceptionHandler(Bloc3Exception.class)
@@ -101,7 +104,9 @@ public class Bloc3Controller {
                 PageRequest.of(pageValide, 10, sort)));
         model.addAttribute("q", q);
         model.addAttribute("tri", tri);
-        model.addAttribute("dossiersPrets", dossiersPretsARecevoir());
+        List<Candidature> prets = dossiersPretsARecevoir();
+        model.addAttribute("dossiersPrets", prets);
+        model.addAttribute("resumesPrets", resumesEtRangs(prets));
         return "bloc3/selections";
     }
 
@@ -115,6 +120,32 @@ public class Bloc3Controller {
                 .stream()
                 .filter(c -> !selections.existsByIdCandidatureB2(c.getIdCandidature()))
                 .toList();
+    }
+
+    /** Résumé des notes du Bloc 2 (test, 3 entretiens, note finale) et rang par offre, pour pré-remplir la réception. */
+    public record ResumePret(java.math.BigDecimal test20, java.math.BigDecimal entretienRh,
+            java.math.BigDecimal entretienTech, java.math.BigDecimal entretienDg,
+            java.math.BigDecimal noteFinale, Integer rang) { }
+
+    private java.util.Map<Integer, ResumePret> resumesEtRangs(List<Candidature> prets) {
+        java.util.Map<Integer, com.gestionrh.sirh.service.recrutement.EntretienService.ResumeNotes> notes = new java.util.HashMap<>();
+        for (Candidature c : prets) notes.put(c.getIdCandidature(), entretiens.resume(c.getIdCandidature()));
+        java.util.Map<Integer, ResumePret> resultat = new java.util.HashMap<>();
+        java.util.Map<Integer, List<Candidature>> parOffre = new java.util.HashMap<>();
+        for (Candidature c : prets) parOffre.computeIfAbsent(c.getOffre() == null ? 0 : c.getOffre().getIdOffre(), k -> new java.util.ArrayList<>()).add(c);
+        for (List<Candidature> groupe : parOffre.values()) {
+            // classement par note finale décroissante (Bloc 2 : « calcule une note finale et classe les candidats »)
+            groupe.sort(java.util.Comparator.comparing(
+                    (Candidature c) -> notes.get(c.getIdCandidature()).noteFinale(),
+                    java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())));
+            int rang = 1;
+            for (Candidature c : groupe) {
+                var n = notes.get(c.getIdCandidature());
+                resultat.put(c.getIdCandidature(), new ResumePret(n.test20(), n.entretienRh(), n.entretienTech(),
+                        n.entretienDg(), n.noteFinale(), rang++));
+            }
+        }
+        return resultat;
     }
 
     @GetMapping("/selections/{id}")

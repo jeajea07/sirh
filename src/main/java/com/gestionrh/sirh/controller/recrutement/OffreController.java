@@ -154,7 +154,12 @@ public class OffreController {
 
     @PostMapping("/{id}/valider")
     public String valider(@PathVariable Integer id, Authentication auth, RedirectAttributes ra) {
-        return action(id, ra, "Offre validée.", () -> service.valider(id, utilisateurCourant(auth)));
+        // Bloc 2, étape 1 : « Après validation, l'offre est publiée sur le site vitrine » (un seul clic RH).
+        Integer validateur = utilisateurCourant(auth);
+        return action(id, ra, "Offre validée et publiée sur le site vitrine.", () -> {
+            service.valider(id, validateur);
+            service.publier(id);
+        });
     }
 
     @PostMapping("/{id}/publier")

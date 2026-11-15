@@ -67,7 +67,8 @@ class Bloc4ContratServiceTest {
                 mock(SignatureContratRepository.class), mock(ValidationB4Repository.class),
                 mock(PosteRepository.class), mock(DepartementRepository.class),
                 mock(DocumentService.class), mock(AuditService.class),
-                mock(NotificationService.class), mock(OnboardingService.class));
+                mock(NotificationService.class), mock(OnboardingService.class),
+                mock(CarriereService.class), mock(SalaireService.class));
     }
 
     private ContratForm formulaire(String code) {

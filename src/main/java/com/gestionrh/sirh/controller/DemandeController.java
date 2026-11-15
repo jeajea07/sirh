@@ -151,6 +151,9 @@ public class DemandeController {
         model.addAttribute("form", form);
         model.addAttribute("demandeur", moi);
         model.addAttribute("postes", postes.findAllByOrderByDesignationAsc());
+        // Employés pouvant être remplacés : salariés actifs du département du demandeur.
+        model.addAttribute("employesDepartement", moi.getDepartement() == null ? List.of()
+                : employes.findByDepartement_IdAndActifTrueOrderByNomAsc(moi.getDepartement().getId()));
         model.addAttribute("typesContrat", typesContrat.findAllByOrderByIdAsc());
         model.addAttribute("aujourdhui", LocalDate.now().toString());
     }

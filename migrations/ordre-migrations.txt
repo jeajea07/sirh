@@ -1,0 +1,30 @@
+# =============================================================================
+#  Ordre canonique des migrations SIRH — SOURCE UNIQUE
+#  Lu par scripts/migrations.sh et scripts/recette-locale.sh : ajouter ici
+#  toute nouvelle migration, à la fin, jamais au milieu.
+#
+#  Colonnes séparées par « | » :
+#    fichier     nom du fichier dans migrations/
+#    type        schema      : structure (+ référentiel indispensable), toujours appliqué
+#                base        : comptes, départements, postes, budgets — toujours appliqué
+#                test        : données de démonstration, seulement avec --avec-donnees-test
+#    destructif  oui si le fichier commence par DROP TABLE … CASCADE : il efface les
+#                données existantes, il ne doit JAMAIS être rejoué sur une base en service
+#    marqueur    expression SQL vraie si la migration est déjà présente dans la base
+#                (sert à reconnaître une base créée avant le suivi des migrations)
+# =============================================================================
+bloc1.sql                 | schema | oui | to_regclass('public.employe') IS NOT NULL
+bloc1_teste.sql           | base   | non | EXISTS (SELECT 1 FROM utilisateur)
+bloc1_employe_sortant.sql | schema | non | EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'demande_besoin' AND column_name = 'id_employe_sortant')
+b2a_recrutement.sql       | schema | oui | to_regclass('public.notification_recrutement') IS NOT NULL
+b2a_donnees_test.sql      | test   | non | EXISTS (SELECT 1 FROM offre)
+bloc2_test_technique.sql  | schema | non | to_regclass('public.reponse_test_technique') IS NOT NULL
+bloc2_entretiens.sql      | schema | non | to_regclass('public.b2_entretien_note') IS NOT NULL
+bloc3_faneva.sql          | schema | oui | to_regclass('public.b3_selection') IS NOT NULL
+bloc3_test.sql            | test   | non | EXISTS (SELECT 1 FROM b3_selection)
+bloc4.sql                 | schema | oui | to_regclass('public.evenement_audit') IS NOT NULL
+bloc4_referentiel.sql     | schema | non | EXISTS (SELECT 1 FROM modele_onboarding WHERE nom = 'Standard')
+bloc4_teste.sql           | test   | non | EXISTS (SELECT 1 FROM contrat WHERE reference = 'CTR-2026-9001')
+bloc5.sql                 | schema | non | to_regclass('public.type_document_administratif') IS NOT NULL
+bloc6.sql                 | schema | non | to_regclass('public.parametre_temps') IS NOT NULL
+bloc7.sql                 | schema | non | to_regclass('public.absence') IS NOT NULL

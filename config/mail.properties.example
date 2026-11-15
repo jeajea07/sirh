@@ -1,0 +1,32 @@
+# =============================================================================
+#  Envoi réel des e-mails aux candidats (SIRH — Bloc 2)
+#
+#  1. Copier ce fichier HORS du dépôt Git :
+#       mkdir -p ~/.sirh && cp config/mail.properties.example ~/.sirh/mail.properties
+#       chmod 600 ~/.sirh/mail.properties
+#  2. Renseigner l'adresse et le mot de passe d'application ci-dessous.
+#  3. Redémarrer l'application. Au démarrage, le journal indique :
+#       « Envoi des e-mails aux candidats : ACTIF (expéditeur ...) »
+#
+#  Ne JAMAIS committer ~/.sirh/mail.properties (il contient un secret).
+# =============================================================================
+
+app.mail.actif=true
+app.mail.expediteur=votre.adresse@gmail.com
+app.mail.nom-expediteur=TeamUp Recrutement
+
+# --- Gmail -------------------------------------------------------------------
+# Le mot de passe habituel du compte NE fonctionne PAS : il faut un
+# « mot de passe d'application » (compte Google > Sécurité > Validation en
+# deux étapes activée > Mots de passe des applications), 16 caractères.
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=votre.adresse@gmail.com
+spring.mail.password=xxxxxxxxxxxxxxxx
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.starttls.required=true
+
+# --- Autres fournisseurs (exemples) -----------------------------------------
+# Outlook / Office 365 : spring.mail.host=smtp.office365.com, port 587, STARTTLS
+# Brevo (ex-Sendinblue) : spring.mail.host=smtp-relay.brevo.com, port 587, STARTTLS

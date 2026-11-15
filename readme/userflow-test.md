@@ -1,4 +1,4 @@
-# Userflow de test — parcours complet SIRH (Bloc 1 → Bloc 4)
+# Userflow de test — parcours complet SIRH (Bloc 1 → Bloc 7)
 
 Ce document décrit le parcours de recette de bout en bout : **connexion → demande de besoin →
 offre → candidature → test technique → sélection/embauche → contrat → onboarding**.
@@ -17,20 +17,37 @@ Il correspond à l'état de la branche `integration/bloc1-4`.
 | Connexion | `DB_URL`, `DB_USER`, `DB_PASSWORD` en variables d'environnement |
 | Port | `8080` |
 
-### Ordre des migrations (base neuve)
+### Ordre des migrations
 
-À exécuter **dans cet ordre** :
+L'ordre fait foi dans **`migrations/ordre-migrations.txt`** (source unique). Ne pas lancer les fichiers à la main :
+`bloc1.sql`, `b2a_recrutement.sql`, `bloc3_faneva.sql` et `bloc4.sql` commencent par `DROP TABLE … CASCADE`
+et **effacent les données** s'ils sont rejoués.
+
+```bash
+./scripts/migrations.sh status                      # où en est ma base ?
+./scripts/migrations.sh apply                       # base existante : n'applique que ce qui manque
+./scripts/migrations.sh apply --avec-donnees-test   # idem + jeux de démonstration
+./scripts/migrations.sh reset --yes                 # repartir de zéro (efface tout)
+```
+
+Ordre de référence :
 
 ```text
 migrations/bloc1.sql
 migrations/bloc1_teste.sql
+migrations/bloc1_employe_sortant.sql
 migrations/b2a_recrutement.sql
 migrations/b2a_donnees_test.sql
 migrations/bloc2_test_technique.sql
+migrations/bloc2_entretiens.sql
 migrations/bloc3_faneva.sql
 migrations/bloc3_test.sql
 migrations/bloc4.sql
+migrations/bloc4_referentiel.sql
 migrations/bloc4_teste.sql
+migrations/bloc5.sql
+migrations/bloc6.sql
+migrations/bloc7.sql
 ```
 
 ### Lancement
@@ -153,12 +170,14 @@ Le circuit de validation est : **RH → FINANCE → DG** (`circuit_validation`).
 
 **Qui :** RH.
 
-1. **RH** → menu **Recrutement → Offres d'emploi** (`/recrutement/offres`).
-2. Cliquer **Nouvelle offre**.
-3. Choisir une **demande acceptée** dans la liste (les demandes `VALIDEE` sans offre active).
-   L'offre hérite du poste, du département et du type de contrat de la demande.
-4. Compléter la référence, le titre, la description, la date limite, les critères.
-5. Ouvrir l'offre → **Valider**, puis **Publier sur le site vitrine**.
+L'offre est **créée automatiquement** en brouillon dès la validation finale de la DG (date limite
+pré-remplie à J+30, critères repris de la demande) et la RH est notifiée.
+
+1. **RH** → menu **Recrutement → Offres d'emploi** (`/recrutement/offres`) → ouvrir l'offre en `BROUILLON`.
+2. Vérifier ou compléter (titre, description, date limite, critères) via **Modifier** si besoin.
+3. Cliquer **Valider et publier sur le site vitrine** : la validation RH publie l'offre (un clic).
+
+> « Nouvelle offre » reste disponible pour une demande validée avant cette fonctionnalité.
 
 **Résultat attendu :** `offre.statut = PUBLIEE`.
 
@@ -210,10 +229,14 @@ Une candidature spontanée est possible via `/candidatures/nouvelle` (sans offre
 
 **Qui :** RH puis candidat.
 
+À la validation du dossier (étape 3), l'accès du candidat est **créé automatiquement** et l'e-mail de
+convocation (identifiant + mot de passe provisoire) est préparé. Le chronomètre du test (30 min, séance
+unique) ne démarre qu'à l'ouverture du test par le candidat.
+
 1. **RH** → **Recrutement → Tests techniques** (`/rh/tests`).
-2. Dans **Dossiers validés**, cliquer **Créer l'accès** pour la candidature concernée.
-3. Un message flash affiche : `Compte candidat créé : CANDx / mot de passe temporaire xxxxxxxx`.
-   **Noter ces deux valeurs.**
+2. Sans serveur de mail en recette : dans **Dossiers validés — accès au test**, cliquer
+   **Renvoyer un nouvel accès** ; le message flash affiche `Compte candidat créé : CANDx / mot de passe
+   temporaire xxxxxxxx`. **Noter ces deux valeurs.**
 4. Se déconnecter.
 5. **Candidat** → `/connexion` → rôle **CANDIDAT** → identifiant `CANDx` (ou email) + mot de passe
    temporaire → **Se connecter**.
@@ -221,10 +244,37 @@ Une candidature spontanée est possible via `/candidatures/nouvelle` (sans offre
 7. Répondre aux 3 questions puis enregistrer. La note est calculée sur **/3** avec un seuil
    (2 par défaut).
 8. **RH** → `/rh/tests` :
-   - **Admettre** → `candidature.statut = CONFIRMATION_FINALE` (le dossier part au Bloc 3),
-   - **Refuser** → `NON_RETENUE`.
+   - **Admettre** → `candidature.statut = ENTRETIEN_RH` (convocation à l'entretien 1),
+   - **Refuser** → `NON_RETENUE` (message de réponse au candidat).
 
-**Résultat attendu :** candidature en `CONFIRMATION_FINALE`, visible dans le Bloc 3.
+**Résultat attendu :** candidature en `ENTRETIEN_RH`.
+
+---
+
+### Étape 4 bis — Bloc 2 : entretiens RH → Technicien → DG
+
+**Qui :** RH. Trois niveaux dans l'ordre, sans sauter de niveau.
+
+1. **RH** → **Recrutement → Entretiens** (`/rh/entretiens`) → **Ouvrir** la candidature.
+2. **Planifier** : date et heure, lieu, jury, note générale minimale (sur 5) et grille d'évaluation
+   (questions pré-remplies, importance 1 à 3, questions éliminatoires avec note minimale).
+   Le candidat est convoqué ; le rendez-vous apparaît dans son espace.
+3. Possible : **Reporter** (le rendez-vous d'origine est conservé) ou **Candidat absent**.
+4. Le jour de l'entretien : saisir les notes du jury (1 à 5) → **Enregistrer les notes et calculer**.
+   Note générale = moyenne pondérée ; résultat proposé « admis » si seuil atteint et questions
+   éliminatoires respectées.
+5. **Confirmer : admis** (ou non admis). Motif obligatoire si la décision diffère de la proposition.
+6. Recommencer pour l'entretien 2 (Technicien) puis 3 (DG).
+
+| Décision | Statut candidature |
+|---|---|
+| Entretien 1 admis | `ENTRETIEN_TECHNICIEN` |
+| Entretien 2 admis | `ENTRETIEN_DG` |
+| Entretien 3 admis | `CONFIRMATION_FINALE` (visible au Bloc 3) |
+| Non admis (tout niveau) | `NON_RETENUE` |
+
+**Résultat attendu :** candidature en `CONFIRMATION_FINALE` ; au Bloc 3, les notes (test /20, entretiens
+/5), la note finale et le rang sont pré-remplis à la réception.
 
 ---
 
@@ -310,6 +360,97 @@ Des modèles de tâches sont disponibles sur `/rh/onboardings/modeles`
 
 ---
 
+### Étape 7 bis — Bloc 5 : dossier administratif du salarié
+
+**Qui :** RH, puis le salarié. Référence métier : `readme/Bloc5.md`.
+
+1. **RH** → **Salariés** → ouvrir le salarié (`/rh/salaries/{id}`).
+   - En tête : ancienneté, contrat en vigueur, salaire de base et pièces obligatoires,
+     **calculés** à partir des périodes en vigueur (jamais saisis).
+   - Les alertes signalent un dossier incomplet, un CDD proche de son échéance, l'absence de contrat ou d'affectation.
+2. **Réviser le salaire** (carte de droite) : nouveau salaire, date d'effet, motif.
+   - Une baisse est refusée (RG-SA04) sauf **Correction** justifiée ; l'ancienne ligne est clôturée la veille, pas écrasée.
+   - Une révision à date future apparaît dans l'historique mais le salaire affiché reste celui du jour.
+3. **Pièces obligatoires** : **Déposer** ouvre le formulaire pré-rempli (`/rh/documents/nouveau?idTypeAdministratif=…`).
+   - Une pièce à durée de validité exige une date d'émission ou d'expiration ; une pièce déjà expirée est refusée.
+   - À la **vérification**, la nouvelle version remplace l'ancienne (`REMPLACE`, toujours consultable).
+   - Traitement quotidien (et au démarrage) : `VERIFIE` → `A_RENOUVELER` → `EXPIRE`, avec notification salarié + RH.
+4. **Statut administratif** : **Suspendre** / **Reprise**, puis **Enregistrer une sortie**
+   (motif, date de notification, date de sortie).
+   - Date future → `EN_PREAVIS` (annulable) ; appliquée automatiquement à la date.
+   - Date atteinte → contrat terminé, affectation clôturée, contrats non signés annulés, compte désactivé, dossier en lecture seule.
+5. **Changer d'affectation** : la précédente est clôturée la veille ; l'historique de carrière qualifie le mouvement
+   (mutation, changement de poste, de responsable).
+6. **Salarié** (ex. EMPLOYE `henika.rasoa@entreprise.mg`) → **Mon dossier** (`/mon-dossier`) :
+   ses informations, contrats, affectations, salaire, parcours, et le dépôt des pièces demandées (statut `RECU`, à vérifier par le RH).
+
+| Statut administratif | Signification |
+|---|---|
+| `EN_INTEGRATION` | salarié créé par l'embauche, contrat pas encore en vigueur |
+| `ACTIF` | contrat en vigueur |
+| `SUSPENDU` | contrat suspendu (maladie longue, congé maternité…) |
+| `EN_PREAVIS` | sortie enregistrée à une date future |
+| `SORTI` | sortie appliquée ; dossier archivé en lecture seule |
+
+---
+
+### Étape 7 ter — Bloc 6 : temps de travail et pointage
+
+**Qui :** salarié, manager, RH, Finance, DG. Référence métier : `readme/Bloc6.md`.
+
+> **Manager** d'un salarié = responsable de son affectation active (Bloc 5), à défaut un compte RESPONSABLE
+> de son département, à défaut la **DG**. Avec les comptes de test, le manager de Henika Rasoa est donc la DG.
+> **Mise en service** : aucun calcul ni anomalie avant la date d'application de `bloc6.sql`
+> (table `parametre_temps`, clé `DATE_MISE_EN_SERVICE`).
+
+1. **Salarié** → **Pointage** (`/pointage`) : bouton *Pointer mon entrée / ma sortie* (sens déduit, doublon < 1 min ignoré).
+   La page montre le planning des 14 jours (planning publié, sinon régime ; congés affichés), le relevé du mois et les anomalies.
+2. **Calcul de nuit** (et au démarrage) pour les 7 derniers jours : prévu (planning ou régime) rapproché des pointages
+   et des congés/absences validés → retard, départ anticipé, heures sup. autorisées, absence non justifiée.
+3. **Salarié** → *Justifier* une anomalie (heure réelle + sens si oubli). **Manager** → **Mon équipe** (`/equipe`) :
+   *Accepter* (pointage correctif créé, journée recalculée, pénalité levée) ou *Confirmer* (une absence confirmée devient
+   une absence injustifiée du Bloc 7). Sans réponse sous 3 jours → escaladée au RH.
+4. **RH** → **Temps de travail** (`/rh/temps`) : anomalies (accepter / confirmer / classer avec motif), relevés,
+   pointage manuel motivé (jamais pour soi-même), annulation d'un pointage (jamais supprimé), changement de régime daté.
+5. **Planning** (`/planning`) : le manager (ou le RH) crée le planning d'un département sur ≤ 31 jours — pré-rempli
+   (régime, fériés, congés validés verrouillés). Un modèle plus long que la durée journalière du régime = heures sup.
+   planifiées ; nuit, dimanche, férié = heures majorées. *Enregistrer et soumettre* contrôle repos hebdomadaire,
+   10 h/jour, 48 h/semaine, délai de prévenance.
+   - **RH** valide → sans heures majorées : **publié** ; avec : **Finance** valide → dans le budget annuel du
+     département : **publié**, sinon **arbitrage DG**. Tout rejet est motivé.
+   - Un planning publié se modifie par *nouvelle version* (l'ancienne passe « Remplacé » à la publication).
+6. **RH** → *Clôture et paie* (`/rh/temps/periodes`) : un mois terminé, sans anomalie ni absence en attente,
+   se clôture → variables de paie (heures normales, sup., nuit, dimanche, férié, retards, absences ; congés et absences
+   du Bloc 7 découpés par mois), acquisition des congés du mois, verrouillage. Export CSV.
+
+### Étape 7 quater — Bloc 7 : congés et absences
+
+Référence métier : `readme/Bloc7.md`. Reprise : 2,5 j de congés payés par mois complet de l'année en cours,
+10 j de permissions ; un écart avec l'ancien système se corrige par **ajustement** RH.
+
+1. **Salarié** → **Mes congés** (`/conges`) : soldes (disponible = acquis − pris − réservé), *Nouvelle demande*
+   (demi-journées possibles, nombre de jours calculé). Refus immédiats : solde insuffisant, chevauchement (contrôlé aussi
+   par la base), délai de prévenance (7 j pour un congé payé), durée maximale, date de fin de contrat.
+2. **Manager** → **Mon équipe** : valider / refuser (motif), avec l'avertissement des collègues absents sur la période.
+3. **RH** → **Congés et absences** (`/rh/conges`) : validation finale (justificatif obligatoire vérifié pour
+   permission, maternité, paternité) → planning mis à jour, journées recalculées. Une demande sans réponse du manager
+   depuis 3 jours est escaladée : le RH peut alors valider l'étape manager.
+4. Chaque nuit : `VALIDEE` → `EN_COURS` → `PRISE` (débit définitif du solde). Le salarié annule avant le début ;
+   le RH **interrompt** un congé en cours (jours non pris recrédités).
+5. **Absences** : déclarées par le salarié (maladie : certificat sous 2 jours), saisies par le RH, ou constatées au
+   pointage. Décision RH : justifiée (justificatif exigé), injustifiée, conversion en congé payé (accord du salarié),
+   annulation. Le manager ne voit jamais le motif médical.
+
+| Statut de demande | Signification |
+|---|---|
+| `SOUMISE` | en attente du manager, jours réservés |
+| `VALIDEE_MANAGER` | en attente du RH |
+| `VALIDEE` → `EN_COURS` → `PRISE` | validée, en cours, prise (solde débité) |
+| `REFUSEE` / `ANNULEE` | jours libérés |
+| `INTERROMPUE` | écourtée, seuls les jours pris sont débités |
+
+---
+
 ### Étape 8 — Contrôles transverses
 
 | Écran | URL | Ce qu'on vérifie |
@@ -320,6 +461,11 @@ Des modèles de tâches sont disponibles sur `/rh/onboardings/modeles`
 | Formalités | `/rh/formalites` | préparation et transmission |
 | Affectations | `/rh/affectations` | rattachement poste/département |
 | Mes tâches | `/mes-taches` | tâches assignées |
+| Mon dossier | `/mon-dossier` | dossier du salarié connecté (Bloc 5) |
+| Pointage | `/pointage` | pointer, planning, relevé, anomalies (Bloc 6) |
+| Mes congés | `/conges` | soldes, demandes, absences (Bloc 7) |
+| Mon équipe | `/equipe` | anomalies et congés à valider (manager) |
+| Plannings | `/planning` | préparation et circuit RH → Finance → DG |
 | Notifications | cloche de la barre du haut | messages et liens |
 | Notifications recrutement | `/recrutement/notifications` | notifications 2A |
 
@@ -349,7 +495,8 @@ sequenceDiagram
 
     RH->>C: Crée l'accès candidat (CANDx + mdp temporaire)
     C->>RH: Passe le test technique (note /3)
-    RH->>RH: Admet → CONFIRMATION_FINALE
+    RH->>RH: Admet → ENTRETIEN_RH
+    RH->>RH: Entretiens RH → Technicien → DG → CONFIRMATION_FINALE
 
     RH->>RH: Réception Bloc 3
     RH->>RH: Vérification, décision, proposition, réponse, confirmation
@@ -371,12 +518,24 @@ sequenceDiagram
 - [ ] Candidature publique déposée avec CV
 - [ ] Candidature classée **CONFORME** par la RH
 - [ ] Accès candidat créé, test passé et noté
-- [ ] Candidature admise → `CONFIRMATION_FINALE`
+- [ ] Candidature admise au test → `ENTRETIEN_RH`
+- [ ] Entretiens 1, 2, 3 planifiés, notés et confirmés → `CONFIRMATION_FINALE`
 - [ ] Dossier reçu au Bloc 3 (« Dossiers prêts à recevoir »)
 - [ ] Vérification, décision, proposition, réponse, confirmation
 - [ ] Transfert Bloc 4 → contrat + employé + onboarding créés
 - [ ] Contrat activé (`EN_VIGUEUR`)
 - [ ] Onboarding mené jusqu'à `TERMINE` puis `CLOTURE`
+- [ ] Bloc 5 : révision de salaire (hausse acceptée, baisse refusée), historique conservé
+- [ ] Bloc 5 : pièce obligatoire déposée, vérifiée, puis remplacée par une nouvelle version
+- [ ] Bloc 5 : sortie future (`EN_PREAVIS`) annulée ; sortie immédiate → `SORTI`, compte désactivé
+- [ ] Bloc 5 : « Mon dossier » accessible au salarié, `/rh/salaries` refusé (403)
+- [ ] Bloc 6 : pointage web, doublon ignoré ; pointage manuel RH motivé, refusé pour soi-même
+- [ ] Bloc 6 : retard justifié puis accepté par le manager → pénalité levée ; absence confirmée → absence injustifiée
+- [ ] Bloc 6 : planning avec heures majorées → RH → Finance → publié ; nouvelle version
+- [ ] Bloc 6 : clôture d'un mois terminé, variables de paie, export CSV ; pointage refusé dans la période close
+- [ ] Bloc 7 : demande refusée (solde, chevauchement, prévenance) ; demande valide → manager → RH → planning mis à jour
+- [ ] Bloc 7 : maladie déclarée → l'anomalie d'absence disparaît ; justification exigée avant décision RH
+- [ ] Bloc 7 : interruption d'un congé en cours, seuls les jours pris débités ; ajustement de solde motivé
 - [ ] Aucune page en erreur 500 ; aucun message JSP/TLD dans les logs
 
 ---
@@ -388,9 +547,9 @@ sequenceDiagram
 | Page 500 « TLD JSTL introuvable » | lancement depuis un chemin contenant un espace | `mvn spring-boot:run` ou WAR copié dans `/tmp/...` |
 | `BeanDefinitionOverrideException: 'candidatRepository'` | classes obsolètes | `./mvnw clean` puis relancer |
 | « Le rôle choisi ne correspond pas à ce compte » | mauvais rôle sélectionné | choisir le rôle du compte |
-| Candidat impossible à connecter | accès non créé ou compte inactif | RH → `/rh/tests` → **Créer l'accès** |
+| Candidat impossible à connecter | accès non créé ou compte inactif | RH → `/rh/tests` → **Renvoyer un nouvel accès** |
 | `/offres/{id}` renvoie 400 | offre non ouverte (brouillon, suspendue, terminée) | publier l'offre d'abord |
-| Pas de bouton « Recevoir » au Bloc 3 | candidature pas en `CONFIRMATION_FINALE` ou déjà reçue | vérifier la décision RH du test |
+| Pas de bouton « Recevoir » au Bloc 3 | candidature pas en `CONFIRMATION_FINALE` ou déjà reçue | vérifier les 3 entretiens (`/rh/entretiens`) |
 | Transfert impossible | décision/proposition/réponse/confirmation incomplètes | dérouler les étapes du tableau §5 |
 
 ---
@@ -400,7 +559,8 @@ sequenceDiagram
 - Les vues historiques du Bloc 2A (`/WEB-INF/views/recrutement/*`) sont désormais rendues dans le
   gabarit commun (barre latérale + barre du haut). Un bloc de styles de transition subsiste dans
   `fragments/entete.jsp` tant que leur balisage n'est pas migré vers les classes communes.
-- Les entretiens technique et DG (`ENTRETIEN_TECHNICIEN`, `ENTRETIEN_DG`) existent dans le modèle
-  de statuts du Bloc 2A mais ne sont pas exposés dans ce parcours de recette.
+- Entretiens en version simplifiée : la RH planifie et saisit les notes du jury ; pas de réservation
+  de créneau par le candidat ni de saisie individuelle par chaque juré (écarts assumés au Bloc 2).
+- Réponses libres du test corrigées par la RH (et non par la direction responsable).
 - Les notifications de recrutement 2A restent sur un écran dédié
   (`/recrutement/notifications`) en plus de la cloche commune.

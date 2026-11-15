@@ -54,6 +54,11 @@ public class DemandeBesoinModel {
     @Column(name = "motif")
     private String motif;
 
+    /** Employé remplacé : obligatoire lorsque le motif est REMPLACEMENT. */
+    @ManyToOne
+    @JoinColumn(name = "id_employe_sortant")
+    private EmployeModel employeSortant;
+
     @Column(name = "niveau_urgence")
     private String niveauUrgence;
 
@@ -144,6 +149,14 @@ public class DemandeBesoinModel {
 
     public void setMotif(String motif) {
         this.motif = motif;
+    }
+
+    public EmployeModel getEmployeSortant() {
+        return employeSortant;
+    }
+
+    public void setEmployeSortant(EmployeModel employeSortant) {
+        this.employeSortant = employeSortant;
     }
 
     public String getNiveauUrgence() {
